@@ -42,74 +42,84 @@ export default async function PostPage({ params }: PageProps) {
   const adjacent = getAdjacentPosts(slug);
 
   return (
-    <main className="stacked">
-      <Link className="ghost-link enter-rise" href="/">
-        <Localized zh={dictionaries.zh.blog.backToHome} en={dictionaries.en.blog.backToHome} />
-      </Link>
+    <main className="stacked article-page">
+      <div className="article-topline enter-rise">
+        <Link className="article-back-link" href="/">
+          <span aria-hidden="true">←</span>
+          <Localized zh={dictionaries.zh.blog.backToHome} en={dictionaries.en.blog.backToHome} />
+        </Link>
+      </div>
 
-      <section className="hero-panel article-hero stacked enter-rise delay-1">
-        <div className="eyebrow">{post.language.toUpperCase()}</div>
-        <div className="mono-kicker">{post.date} / {post.readingMinutes} min / note</div>
-        <h1 className="section-title" style={{ fontSize: "clamp(2.4rem, 4vw, 4rem)" }}>
-          {post.title}
-        </h1>
-        <div className="article-summary-box">
-          <p className="kicker" style={{ margin: 0 }}>{post.summary}</p>
+      <header className="article-header enter-rise delay-1">
+        <div className="article-meta-strip">
+          <span>{post.date}</span>
+          <span>{post.readingMinutes} min</span>
+          <span>{post.language.toUpperCase()}</span>
         </div>
-        <div className="meta-row">
-          <Localized
-            zh={`${dictionaries.zh.blog.languageLabel}: ${post.language.toUpperCase()}`}
-            en={`${dictionaries.en.blog.languageLabel}: ${post.language.toUpperCase()}`}
-          />
+        <h1 className="article-title">{post.title}</h1>
+        <div className="article-abstract">
+          <Localized className="article-abstract-label" zh="摘要" en="Abstract" />
+          <p className="article-abstract-copy">{post.summary}</p>
         </div>
-        <div className="tag-list">
-          {post.tags.map((tag) => (
-            <Link key={tag} className="tag" href={`/tags/${toTagSlug(tag)}`}>
-              {tag}
-            </Link>
-          ))}
+        <div className="article-keywords">
+          <Localized className="article-keywords-label" zh="关键词" en="Keywords" />
+          <div className="tag-list article-tag-list">
+            {post.tags.map((tag) => (
+              <Link key={tag} className="tag article-tag" href={`/tags/${toTagSlug(tag)}`}>
+                {tag}
+              </Link>
+            ))}
+          </div>
         </div>
-      </section>
+      </header>
 
-      <section className="article-layout">
-        <article className="article-main content-panel enter-rise delay-2">
-          <div className="prose">{content}</div>
+      <section className="article-layout article-reading-layout">
+        <article className="article-main enter-rise delay-2">
+          <div className="prose article-prose">{content}</div>
 
-          <div className="post-navigation">
+          <nav className="post-navigation article-pagination" aria-label="Post navigation">
             {adjacent.previous ? (
-              <Link className="content-panel nav-card" href={`/posts/${adjacent.previous.slug}`}>
-                <div className="muted">
+              <Link className="article-nav-link" href={`/posts/${adjacent.previous.slug}`}>
+                <div className="article-nav-label">
                   <Localized zh={dictionaries.zh.blog.previous} en={dictionaries.en.blog.previous} />
                 </div>
-                <div>{adjacent.previous.title}</div>
+                <div className="article-nav-title">{adjacent.previous.title}</div>
               </Link>
             ) : (
               <div />
             )}
 
             {adjacent.next ? (
-              <Link className="content-panel nav-card" href={`/posts/${adjacent.next.slug}`}>
-                <div className="muted">
+              <Link className="article-nav-link article-nav-link-next" href={`/posts/${adjacent.next.slug}`}>
+                <div className="article-nav-label">
                   <Localized zh={dictionaries.zh.blog.next} en={dictionaries.en.blog.next} />
                 </div>
-                <div>{adjacent.next.title}</div>
+                <div className="article-nav-title">{adjacent.next.title}</div>
               </Link>
             ) : (
               <div />
             )}
-          </div>
+          </nav>
         </article>
 
-        <aside className="article-aside content-panel enter-rise delay-3">
-          <Localized className="section-title" zh={dictionaries.zh.blog.tableOfContents} en={dictionaries.en.blog.tableOfContents} />
-          <div className="toc-list">
-            {post.headings.map((heading) => (
-              <a key={heading.id} href={`#${heading.id}`} style={{ paddingLeft: heading.level === 3 ? "1rem" : undefined }}>
-                {heading.text}
-              </a>
-            ))}
-          </div>
-        </aside>
+        {post.headings.length ? (
+          <aside className="article-aside enter-rise delay-3">
+            <div className="article-toc">
+              <Localized className="article-toc-title" zh="本文目录" en="On this page" />
+              <div className="toc-list article-toc-list">
+                {post.headings.map((heading) => (
+                  <a
+                    key={heading.id}
+                    className={`toc-link toc-link-level-${heading.level}`}
+                    href={`#${heading.id}`}
+                  >
+                    {heading.text}
+                  </a>
+                ))}
+              </div>
+            </div>
+          </aside>
+        ) : null}
       </section>
     </main>
   );

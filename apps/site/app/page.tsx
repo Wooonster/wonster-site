@@ -31,6 +31,34 @@ function isExternalLink(href: string) {
   return href.startsWith("http") && !href.includes("whatsmy.fun");
 }
 
+function ArrowOutIcon() {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 20 20" fill="none">
+      <path
+        d="M6.25 13.75 13.75 6.25M8 6.25h5.75V12"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.6"
+      />
+    </svg>
+  );
+}
+
+function ChevronDownIcon() {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 20 20" fill="none">
+      <path
+        d="m5.75 8.25 4.25 4.25 4.25-4.25"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.6"
+      />
+    </svg>
+  );
+}
+
 export default function SitePage() {
   const zhSite = dictionaries.zh.site;
   const enSite = dictionaries.en.site;
@@ -41,10 +69,28 @@ export default function SitePage() {
         <div className="wordmark">
           what's <mark>my</mark>
         </div>
-        <div className="stack-inline">
-          <LocaleToggle />
-          <ThemeToggle />
-        </div>
+        <details className="settings-details">
+          <summary className="settings-summary">
+            <span className="settings-summary-copy">
+              <Localized zh="界面设置" en="Preferences" />
+            </span>
+            <span className="settings-summary-icon">
+              <ChevronDownIcon />
+            </span>
+          </summary>
+          <div className="settings-panel-shell">
+            <div className="content-panel settings-panel">
+              <div className="settings-group">
+                <Localized className="settings-group-label" zh="语言" en="Language" />
+                <LocaleToggle />
+              </div>
+              <div className="settings-group">
+                <Localized className="settings-group-label" zh="主题" en="Theme" />
+                <ThemeToggle />
+              </div>
+            </div>
+          </div>
+        </details>
       </header>
 
       <section className="home-hero-grid">
@@ -54,19 +100,21 @@ export default function SitePage() {
             <div className="issue-stamp">Edition 01</div>
           </div>
           <Localized className="mono-kicker" zh={zhSite.identityLine} en={enSite.identityLine} />
-          <h1 className="display-title">
-            <Localized zh={zhSite.heading} en={enSite.heading} />
-          </h1>
-          <p className="kicker site-lead">
-            <Localized zh={zhSite.intro} en={enSite.intro} />
-          </p>
-          <div className="stack-inline hero-action-row">
-            <Link className="solid-link" href="https://blog.whatsmy.fun">
-              <Localized zh={zhSite.primaryCta} en={enSite.primaryCta} />
-            </Link>
-            <Link className="ghost-link" href="#projects">
-              <Localized zh={zhSite.secondaryCta} en={enSite.secondaryCta} />
-            </Link>
+          <div className="site-thesis-main">
+            <h1 className="display-title">
+              <Localized zh={zhSite.heading} en={enSite.heading} />
+            </h1>
+            <p className="kicker site-lead">
+              <Localized zh={zhSite.intro} en={enSite.intro} />
+            </p>
+            <div className="stack-inline hero-action-row">
+              <Link className="solid-link" href="https://blog.whatsmy.fun">
+                <Localized zh={zhSite.primaryCta} en={enSite.primaryCta} />
+              </Link>
+              <Link className="ghost-link" href="#projects">
+                <Localized zh={zhSite.secondaryCta} en={enSite.secondaryCta} />
+              </Link>
+            </div>
           </div>
           <div className="site-inline-ledger">
             <span>paper-first notes</span>
@@ -123,7 +171,9 @@ export default function SitePage() {
             </div>
             <Link className="index-more-link" href="https://blog.whatsmy.fun/archive">
               <span>Archive</span>
-              <span aria-hidden="true">↗</span>
+              <span className="action-icon" aria-hidden="true">
+                <ArrowOutIcon />
+              </span>
             </Link>
           </div>
           <div className="index-list">
@@ -134,8 +184,8 @@ export default function SitePage() {
                   <Localized as="h3" zh={post.title.zh} en={post.title.en} />
                   <Localized as="p" className="kicker index-entry-summary" zh={post.summary.zh} en={post.summary.en} />
                 </div>
-                <span className="index-entry-arrow" aria-hidden="true">
-                  ↗
+                <span className="entry-action" aria-hidden="true">
+                  <ArrowOutIcon />
                 </span>
               </Link>
             ))}
@@ -159,7 +209,7 @@ export default function SitePage() {
                   rel={external ? "noreferrer" : undefined}
                   target={external ? "_blank" : undefined}
                 >
-                  <div className="project-row-top">
+                  <div className="project-row-meta">
                     <span className="project-count">{String(index + 1).padStart(2, "0")}</span>
                     <span className="project-type">{project.type}</span>
                   </div>
@@ -172,8 +222,8 @@ export default function SitePage() {
                       en={enSite.projects[index].description}
                     />
                   </div>
-                  <span className="project-row-arrow" aria-hidden="true">
-                    ↗
+                  <span className="entry-action" aria-hidden="true">
+                    <ArrowOutIcon />
                   </span>
                 </Link>
               );
@@ -200,7 +250,9 @@ export default function SitePage() {
                 target={external ? "_blank" : undefined}
               >
                 <span>{link.label}</span>
-                <span aria-hidden="true">↗</span>
+                <span className="action-icon" aria-hidden="true">
+                  <ArrowOutIcon />
+                </span>
               </Link>
             );
           })}
