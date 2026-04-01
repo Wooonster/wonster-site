@@ -1,0 +1,60 @@
+body {
+  min-height: 100vh;
+}
+
+.blog-frame {
+  display: grid;
+  gap: 1.2rem;
+}
+
+.hero-copy {
+  display: grid;
+  gap: 1rem;
+  max-width: 42rem;
+}
+
+.post-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.hero-metadata {
+  display: grid;
+  gap: 0.8rem;
+  align-content: start;
+}
+
+.footer-stack {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.footer-traffic-note {
+  margin: 0;
+  max-width: 24rem;
+  font-size: 0.84rem;
+  line-height: 1.7;
+  text-align: right;
+}
+
+.post-navigation {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.post-navigation > a {
+  min-width: 0;
+}
+
+@media (max-width: 720px) {
+  .footer-traffic-note {
+    max-width: none;
+    text-align: left;
+  }
+
+  .post-navigation {
+    grid-template-columns: 1fr;
+  }
+}
