@@ -20,9 +20,9 @@ export function PostCard({ post, index = 0 }: { post: PostMeta; index?: number }
           </Link>
         ))}
       </div>
-      <Link className="ghost-link" href={`/posts/${post.slug}`}>
+      <Link className="post-card-link" href={`/posts/${post.slug}`}>
         <Localized zh={dictionaries.zh.blog.readArticle} en={dictionaries.en.blog.readArticle} />
-        <span aria-hidden="true">↗</span>
+        <span aria-hidden="true">→</span>
       </Link>
     </article>
   );

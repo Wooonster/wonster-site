@@ -1,16 +1,16 @@
 :root {
   --font-body: "Instrument Sans", sans-serif;
   --font-display: "Syne", sans-serif;
-  --background: oklch(0.972 0.012 233);
-  --background-strong: oklch(0.944 0.018 228);
-  --background-elevated: oklch(0.986 0.008 242);
-  --foreground: oklch(0.23 0.024 246);
-  --foreground-soft: oklch(0.5 0.028 240);
-  --line: oklch(0.86 0.026 232);
-  --accent: oklch(0.74 0.128 231);
-  --accent-strong: oklch(0.57 0.155 237);
-  --accent-secondary: oklch(0.8 0.072 205);
-  --accent-tertiary: oklch(0.76 0.07 255);
+  --background: oklch(0.983 0.015 95);
+  --background-strong: oklch(0.963 0.027 92);
+  --background-elevated: oklch(0.992 0.012 102);
+  --foreground: oklch(0.255 0.028 76);
+  --foreground-soft: oklch(0.52 0.03 82);
+  --line: oklch(0.9 0.03 90);
+  --accent: oklch(0.865 0.06 214);
+  --accent-strong: oklch(0.655 0.11 224);
+  --accent-secondary: oklch(0.94 0.045 102);
+  --accent-tertiary: oklch(0.925 0.04 160);
   --shadow: 0 28px 90px color-mix(in srgb, var(--foreground) 10%, transparent);
   --shadow-soft: 0 10px 34px color-mix(in srgb, var(--foreground) 6%, transparent);
   --radius-large: 28px;
@@ -22,16 +22,16 @@
 }
 
 [data-theme="dark"] {
-  --background: oklch(0.17 0.02 250);
-  --background-strong: oklch(0.22 0.024 244);
-  --background-elevated: oklch(0.255 0.024 240);
-  --foreground: oklch(0.93 0.012 240);
-  --foreground-soft: oklch(0.75 0.03 230);
-  --line: oklch(0.34 0.03 238);
-  --accent: oklch(0.74 0.13 226);
-  --accent-strong: oklch(0.83 0.104 214);
-  --accent-secondary: oklch(0.78 0.068 192);
-  --accent-tertiary: oklch(0.74 0.064 258);
+  --background: oklch(0.19 0.02 78);
+  --background-strong: oklch(0.235 0.024 80);
+  --background-elevated: oklch(0.268 0.022 82);
+  --foreground: oklch(0.935 0.012 92);
+  --foreground-soft: oklch(0.77 0.024 88);
+  --line: oklch(0.36 0.025 86);
+  --accent: oklch(0.76 0.09 212);
+  --accent-strong: oklch(0.84 0.09 215);
+  --accent-secondary: oklch(0.72 0.05 102);
+  --accent-tertiary: oklch(0.7 0.04 155);
   --shadow: 0 24px 80px color-mix(in srgb, #000 32%, transparent);
   --shadow-soft: 0 12px 28px color-mix(in srgb, #000 22%, transparent);
 }
@@ -51,9 +51,10 @@ html[data-theme="dark"] {
 body {
   margin: 0;
   background:
-    radial-gradient(circle at 8% 10%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 28%),
-    radial-gradient(circle at 88% 12%, color-mix(in srgb, var(--accent-secondary) 18%, transparent), transparent 22%),
-    linear-gradient(145deg, color-mix(in srgb, var(--background-strong) 82%, var(--background)) 10%, var(--background) 54%, color-mix(in srgb, var(--accent-tertiary) 9%, var(--background)) 100%);
+    radial-gradient(circle at 8% 10%, color-mix(in srgb, var(--accent) 18%, transparent), transparent 28%),
+    radial-gradient(circle at 88% 12%, color-mix(in srgb, var(--accent-secondary) 28%, transparent), transparent 22%),
+    radial-gradient(circle at 56% 100%, color-mix(in srgb, var(--accent-tertiary) 18%, transparent), transparent 26%),
+    linear-gradient(145deg, color-mix(in srgb, var(--background-strong) 88%, var(--background)) 8%, var(--background) 56%, color-mix(in srgb, var(--accent-secondary) 9%, var(--background)) 100%);
   color: var(--foreground);
   font-family: var(--font-body);
   min-height: 100vh;
@@ -78,7 +79,7 @@ img {
     linear-gradient(90deg, color-mix(in srgb, var(--line) 34%, transparent) 1px, transparent 1px);
   background-size: 32px 32px;
   mask-image: linear-gradient(180deg, transparent 0%, black 8%, black 92%, transparent 100%);
-  opacity: 0.24;
+  opacity: 0.18;
 }
 
 .page-shell {
@@ -94,6 +95,8 @@ img {
   gap: 1rem;
   padding: 1rem 0 2rem;
   position: relative;
+  z-index: 2;
+  isolation: isolate;
 }
 
 .topbar::after {
@@ -121,11 +124,54 @@ img {
   color: var(--accent-strong);
 }
 
+.brand-column {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.topbar-nav {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.1rem;
+  color: var(--foreground-soft);
+  font-size: 0.86rem;
+  letter-spacing: 0.04em;
+}
+
+.topbar-nav a {
+  transition:
+    color 180ms var(--ease-out-quart),
+    transform 180ms var(--ease-out-quart);
+}
+
+.topbar-nav a:hover {
+  color: var(--foreground);
+  transform: translateY(-1px);
+}
+
+.topbar-nav a[data-active="true"] {
+  color: var(--foreground);
+}
+
+.topbar-nav a + a {
+  margin-left: 0.68rem;
+  padding-left: 0.82rem;
+  border-left: 1px solid color-mix(in srgb, var(--accent) 22%, var(--line));
+}
+
 .stack-inline {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 0.75rem;
+}
+
+.toggle-button-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.42rem;
+  flex-wrap: nowrap;
 }
 
 .chip-button,
@@ -149,6 +195,14 @@ img {
   box-shadow: var(--shadow-soft);
 }
 
+.chip-button[data-size="compact"] {
+  padding: 0.5rem 0.72rem;
+  min-height: 2.2rem;
+  font-size: 0.82rem;
+  letter-spacing: 0.02em;
+  box-shadow: none;
+}
+
 .chip-button:hover,
 .ghost-link:hover,
 .solid-link:hover {
@@ -158,7 +212,115 @@ img {
 
 .chip-button[data-active="true"] {
   border-color: color-mix(in srgb, var(--accent) 56%, var(--line));
-  background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 18%, var(--background)), color-mix(in srgb, var(--accent-secondary) 10%, var(--background)));
+  background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 26%, var(--background-elevated)), color-mix(in srgb, var(--accent-secondary) 22%, var(--background-elevated)));
+}
+
+.preference-rail-shell {
+  position: relative;
+  display: flex;
+  justify-content: flex-end;
+  min-height: 3.15rem;
+  z-index: 4;
+  outline: none;
+}
+
+.preference-rail-summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.58rem 0.9rem 0.58rem 1rem;
+  border: 1px solid color-mix(in srgb, var(--accent) 26%, var(--line));
+  border-radius: 999px;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--background-elevated) 96%, transparent), color-mix(in srgb, var(--accent-secondary) 12%, var(--background-elevated))),
+    radial-gradient(circle at 18% 50%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 28%);
+  box-shadow: 0 10px 24px color-mix(in srgb, var(--foreground) 6%, transparent);
+  transition:
+    opacity 220ms var(--ease-out-quart),
+    transform 220ms var(--ease-out-quart),
+    border-color 220ms var(--ease-out-quart),
+    box-shadow 220ms var(--ease-out-quart);
+}
+
+.preference-summary-label {
+  color: var(--foreground-soft);
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.preference-summary-dot {
+  width: 0.46rem;
+  height: 0.46rem;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--accent-strong) 72%, var(--accent));
+  box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent) 14%, transparent);
+}
+
+.preference-rail-panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  transform-origin: right center;
+  opacity: 0;
+  transform: translate3d(0, 0, 0) scaleX(0.36) scaleY(0.92);
+  filter: blur(2px);
+  pointer-events: none;
+  transition:
+    opacity 240ms var(--ease-out-quart),
+    transform 240ms var(--ease-out-quart),
+    filter 240ms var(--ease-out-quart);
+}
+
+.preference-rail-shell:hover .preference-rail-panel,
+.preference-rail-shell:focus-within .preference-rail-panel,
+.preference-rail-shell:focus-visible .preference-rail-panel {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scaleX(1) scaleY(1);
+  filter: none;
+  pointer-events: auto;
+}
+
+.preference-rail-shell:hover .preference-rail-summary,
+.preference-rail-shell:focus-within .preference-rail-summary,
+.preference-rail-shell:focus-visible .preference-rail-summary {
+  opacity: 0;
+  transform: translateX(10px) scale(0.96);
+}
+
+.preference-rail {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid color-mix(in srgb, var(--accent) 20%, var(--line));
+  border-radius: 999px;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--background-elevated) 92%, transparent), color-mix(in srgb, var(--accent-secondary) 5%, var(--background))),
+    radial-gradient(circle at 12% 50%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 26%);
+  box-shadow: 0 12px 28px color-mix(in srgb, var(--foreground) 7%, transparent);
+  position: relative;
+  z-index: 4;
+}
+
+.preference-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.preference-label {
+  color: var(--foreground-soft);
+  font-size: 0.66rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.preference-divider {
+  width: 1px;
+  height: 1.45rem;
+  background: color-mix(in srgb, var(--accent) 20%, var(--line));
 }
 
 .solid-link,
@@ -207,8 +369,8 @@ img {
 .content-panel {
   border: 1px solid color-mix(in srgb, var(--line) 82%, transparent);
   background:
-    linear-gradient(180deg, color-mix(in srgb, var(--background-elevated) 84%, transparent), color-mix(in srgb, var(--background) 82%, transparent)),
-    radial-gradient(circle at top left, color-mix(in srgb, var(--accent) 10%, transparent), transparent 42%);
+    linear-gradient(180deg, color-mix(in srgb, var(--background-elevated) 90%, transparent), color-mix(in srgb, var(--background) 84%, transparent)),
+    radial-gradient(circle at top left, color-mix(in srgb, var(--accent-secondary) 14%, transparent), transparent 42%);
   box-shadow: var(--shadow);
   backdrop-filter: blur(18px);
   position: relative;
@@ -301,7 +463,7 @@ img {
 
 .tag[data-accent="true"] {
   border-color: color-mix(in srgb, var(--accent) 40%, var(--line));
-  background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 9%, var(--background-elevated)), color-mix(in srgb, var(--accent-secondary) 8%, var(--background-elevated)));
+  background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 14%, var(--background-elevated)), color-mix(in srgb, var(--accent-secondary) 14%, var(--background-elevated)));
 }
 
 .grid-two {
@@ -323,16 +485,10 @@ img {
 
 .post-card {
   display: grid;
-  gap: 1rem;
-  padding: 1.35rem;
-  border-radius: var(--radius-medium);
-  border: 1px solid var(--line);
-  background:
-    linear-gradient(180deg, color-mix(in srgb, var(--background-elevated) 94%, transparent), color-mix(in srgb, var(--background) 88%, transparent)),
-    radial-gradient(circle at top right, color-mix(in srgb, var(--accent-tertiary) 10%, transparent), transparent 34%);
-  box-shadow: var(--shadow-soft);
+  gap: 0.8rem;
+  padding: 1.25rem 0;
+  border-top: 1px solid color-mix(in srgb, var(--line) 84%, transparent);
   position: relative;
-  overflow: clip;
   transition:
     transform 260ms var(--ease-out-quart),
     border-color 260ms var(--ease-out-quart),
@@ -340,25 +496,42 @@ img {
 }
 
 .post-card::after {
-  content: "";
-  position: absolute;
-  inset: auto 0 0 0;
-  height: 3px;
-  background: linear-gradient(90deg, var(--accent), var(--accent-secondary), var(--accent-tertiary));
-  opacity: 0.78;
+  content: none;
 }
 
 .post-card:hover {
-  transform: translateY(-4px);
+  transform: translateX(4px);
   border-color: color-mix(in srgb, var(--accent) 42%, var(--line));
-  box-shadow: 0 28px 52px color-mix(in srgb, var(--foreground) 12%, transparent);
+  box-shadow: none;
 }
 
 .post-card h3 {
   margin: 0;
-  font-size: 1.2rem;
+  font-size: 1.24rem;
   letter-spacing: -0.04em;
-  line-height: 1.18;
+  line-height: 1.22;
+}
+
+.post-card:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.post-card-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  width: fit-content;
+  color: var(--accent-strong);
+  font-size: 0.94rem;
+  transition:
+    color 180ms var(--ease-out-quart),
+    transform 180ms var(--ease-out-quart);
+}
+
+.post-card-link:hover {
+  color: var(--foreground);
+  transform: translateX(2px);
 }
 
 .muted {
@@ -626,6 +799,23 @@ img {
   box-shadow: var(--shadow-soft);
 }
 
+.flat-panel {
+  display: grid;
+  gap: 0.95rem;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  backdrop-filter: none;
+  overflow: visible;
+}
+
+.flat-panel::before,
+.flat-panel::after {
+  content: none;
+}
+
 .signal-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -757,9 +947,53 @@ img {
     flex-direction: column;
   }
 
+  .brand-column {
+    width: 100%;
+  }
+
+  .preference-rail-shell {
+    width: 100%;
+  }
+
+  .preference-rail-summary {
+    display: none;
+  }
+
+  .preference-rail-panel {
+    position: static;
+    opacity: 1;
+    transform: none;
+    filter: none;
+    pointer-events: auto;
+  }
+
+  .preference-rail {
+    width: 100%;
+    justify-content: space-between;
+    border-radius: calc(var(--radius-medium) - 2px);
+  }
+
+  .preference-group {
+    flex-wrap: wrap;
+  }
+
   .section-head {
     align-items: flex-start;
     flex-direction: column;
+  }
+}
+
+@media (hover: none) {
+  .preference-rail-summary {
+    display: none;
+  }
+
+  .preference-rail-panel {
+    position: static;
+    opacity: 1;
+    transform: none;
+    filter: none;
+    pointer-events: auto;
   }
 }
 

@@ -8,8 +8,11 @@ import "@fontsource/instrument-sans/700.css";
 import "@fontsource/syne/700.css";
 import "@fontsource/syne/800.css";
 import "@whatsmy/ui/styles.css";
+import "katex/dist/katex.min.css";
 import "./globals.css";
 import { AppProviders, LocaleScript, PageShell, SurfaceGrid } from "@whatsmy/ui";
+
+export const revalidate = 3600;
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://whatsmy.fun"),

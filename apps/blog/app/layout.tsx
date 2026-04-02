@@ -11,7 +11,7 @@ import "@whatsmy/ui/styles.css";
 import "katex/dist/katex.min.css";
 import "./globals.css";
 import { dictionaries } from "@whatsmy/config";
-import { AppProviders, LocaleScript, Localized, LocaleToggle, PageShell, SurfaceGrid, ThemeToggle } from "@whatsmy/ui";
+import { AppProviders, LocaleScript, Localized, PageShell, PreferenceRail, SurfaceGrid } from "@whatsmy/ui";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://blog.whatsmy.fun"),
@@ -32,15 +32,18 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <PageShell>
             <div className="blog-frame">
               <header className="topbar">
-                <div className="stacked" style={{ gap: "0.45rem" }}>
+                <div className="brand-column">
                   <Link className="wordmark" href="/">
                     what's <mark>my</mark>
                   </Link>
-                  <nav className="stack-inline muted">
+                  <nav className="topbar-nav" aria-label="Primary">
                     <Link href="https://whatsmy.fun">
                       <Localized zh={dictionaries.zh.nav.home} en={dictionaries.en.nav.home} />
                     </Link>
-                    <Link href="/">
+                    <Link href="https://whatsmy.fun/everyday-paper">
+                      <Localized zh="Everyday Paper" en="Everyday Paper" />
+                    </Link>
+                    <Link data-active="true" href="/">
                       <Localized zh={dictionaries.zh.nav.blog} en={dictionaries.en.nav.blog} />
                     </Link>
                     <Link href="/archive">
@@ -49,10 +52,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                   </nav>
                 </div>
 
-                <div className="stack-inline">
-                  <LocaleToggle />
-                  <ThemeToggle />
-                </div>
+                <PreferenceRail />
               </header>
               {children}
               <footer className="footer-bar">

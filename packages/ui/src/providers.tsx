@@ -12,6 +12,7 @@ import { ThemeProvider as NextThemeProvider, useTheme } from "next-themes";
 import type { LocalePreference, ThemePreference } from "@whatsmy/config";
 
 const LOCALE_STORAGE_KEY = "whatsmy-locale";
+const LOCALE_COOKIE_KEY = "whatsmy-locale";
 const THEME_STORAGE_KEY = "whatsmy-theme";
 const THEME_COOKIE_KEY = "whatsmy-theme";
 
@@ -37,9 +38,14 @@ export function AppProviders({ children }: { children: ReactNode }) {
   const [locale, setLocaleState] = useState<LocalePreference>(resolveInitialLocale);
 
   useEffect(() => {
+    const maxAge = 60 * 60 * 24 * 365;
+    const isProdDomain = window.location.hostname === "whatsmy.fun" || window.location.hostname.endsWith(".whatsmy.fun");
+    const domain = isProdDomain ? "; domain=.whatsmy.fun" : "";
+
     document.documentElement.dataset.locale = locale;
     document.documentElement.lang = locale;
     window.localStorage.setItem(LOCALE_STORAGE_KEY, locale);
+    document.cookie = `${LOCALE_COOKIE_KEY}=${encodeURIComponent(locale)}; path=/; max-age=${maxAge}; samesite=lax${domain}`;
   }, [locale]);
 
   const value = useMemo(
@@ -79,6 +85,13 @@ export function LocaleScript() {
         return value ? decodeURIComponent(value) : null;
       };
 
+      const writeCookie = (key, value) => {
+        const maxAge = 60 * 60 * 24 * 365;
+        const isProdDomain = window.location.hostname === "whatsmy.fun" || window.location.hostname.endsWith(".whatsmy.fun");
+        const domain = isProdDomain ? "; domain=.whatsmy.fun" : "";
+        document.cookie = key + "=" + encodeURIComponent(value) + "; path=/; max-age=" + maxAge + "; samesite=lax" + domain;
+      };
+
       const resolveTheme = (preference) => {
         if (preference === "light" || preference === "dark") {
           return preference;
@@ -101,9 +114,21 @@ export function LocaleScript() {
       document.documentElement.dataset.theme = resolvedTheme;
       document.documentElement.style.colorScheme = resolvedTheme;
 
+      const query = new URLSearchParams(window.location.search).get("locale");
+      const cookieLocale = readCookie("${LOCALE_COOKIE_KEY}");
       const stored = window.localStorage.getItem("${LOCALE_STORAGE_KEY}");
       const browser = navigator.language.toLowerCase().startsWith("zh") ? "zh" : "en";
-      const locale = stored === "zh" || stored === "en" ? stored : browser;
+      const locale =
+        query === "zh" || query === "en"
+          ? query
+          : cookieLocale === "zh" || cookieLocale === "en"
+            ? cookieLocale
+            : stored === "zh" || stored === "en"
+              ? stored
+              : browser;
+
+      window.localStorage.setItem("${LOCALE_STORAGE_KEY}", locale);
+      writeCookie("${LOCALE_COOKIE_KEY}", locale);
       document.documentElement.dataset.locale = locale;
       document.documentElement.lang = locale;
     })();

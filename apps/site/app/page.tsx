@@ -1,31 +1,10 @@
 import Link from "next/link";
 import { dictionaries, socialLinks } from "@whatsmy/config";
-import { Localized, LocaleToggle, ThemeToggle } from "@whatsmy/ui";
-
-const featuredPosts = [
-  {
-    href: "https://blog.whatsmy.fun/posts/transformer-paper-notes",
-    title: {
-      zh: "Transformer 论文笔记",
-      en: "Transformer paper notes"
-    },
-    summary: {
-      zh: "从注意力机制、架构设计到影响后续大模型发展的关键判断。",
-      en: "Attention, architecture, and the ideas that shaped later large-model thinking."
-    }
-  },
-  {
-    href: "https://blog.whatsmy.fun/posts/gspo-paper-notes",
-    title: {
-      zh: "GSPO 论文笔记",
-      en: "GSPO paper notes"
-    },
-    summary: {
-      zh: "围绕推理、优化与实验结果的阅读笔记与问题意识整理。",
-      en: "A reading log focused on reasoning, optimization, and what the experiments really show."
-    }
-  }
-] as const;
+import { Localized } from "@whatsmy/ui";
+import { SiteHeader } from "../components/site-header";
+import { getCurrentSiteDateStamp } from "../lib/current-date";
+import { getEverydayPapers } from "../lib/everyday-paper";
+import { featuredPosts } from "../lib/site-data";
 
 function isExternalLink(href: string) {
   return href.startsWith("http") && !href.includes("whatsmy.fun");
@@ -45,53 +24,18 @@ function ArrowOutIcon() {
   );
 }
 
-function ChevronDownIcon() {
-  return (
-    <svg aria-hidden="true" viewBox="0 0 20 20" fill="none">
-      <path
-        d="m5.75 8.25 4.25 4.25 4.25-4.25"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="1.6"
-      />
-    </svg>
-  );
-}
-
 export default function SitePage() {
   const zhSite = dictionaries.zh.site;
   const enSite = dictionaries.en.site;
+  const currentDate = getCurrentSiteDateStamp();
+  const dailyPaperPicks = getEverydayPapers()
+    .filter((paper) => paper.date === currentDate)
+    .slice(0, 5);
+  const todayPaperHref = dailyPaperPicks[0] ? `/everyday-paper/${dailyPaperPicks[0].slug}` : "/everyday-paper";
 
   return (
     <main className="stacked site-home">
-      <header className="topbar enter-rise">
-        <div className="wordmark">
-          what's <mark>my</mark>
-        </div>
-        <details className="settings-details">
-          <summary className="settings-summary">
-            <span className="settings-summary-copy">
-              <Localized zh="界面设置" en="Preferences" />
-            </span>
-            <span className="settings-summary-icon">
-              <ChevronDownIcon />
-            </span>
-          </summary>
-          <div className="settings-panel-shell">
-            <div className="content-panel settings-panel">
-              <div className="settings-group">
-                <Localized className="settings-group-label" zh="语言" en="Language" />
-                <LocaleToggle />
-              </div>
-              <div className="settings-group">
-                <Localized className="settings-group-label" zh="主题" en="Theme" />
-                <ThemeToggle />
-              </div>
-            </div>
-          </div>
-        </details>
-      </header>
+      <SiteHeader active="home" />
 
       <section className="home-hero-grid">
         <div className="hero-panel site-hero-copy site-thesis-panel enter-rise delay-1">
@@ -111,7 +55,7 @@ export default function SitePage() {
               <Link className="solid-link" href="https://blog.whatsmy.fun">
                 <Localized zh={zhSite.primaryCta} en={enSite.primaryCta} />
               </Link>
-              <Link className="ghost-link" href="#projects">
+              <Link className="ghost-link" href={todayPaperHref}>
                 <Localized zh={zhSite.secondaryCta} en={enSite.secondaryCta} />
               </Link>
             </div>
@@ -124,39 +68,39 @@ export default function SitePage() {
         </div>
 
         <aside className="home-side-rail enter-rise delay-2">
-          <section className="signal-panel current-panel">
+          <section className="signal-panel current-panel flat-panel site-rail-section enter-rise delay-3">
             <div className="section-head compact-head">
-              <Localized className="section-title" zh={zhSite.nowLabel} en={enSite.nowLabel} />
+              <Localized className="section-title" zh="Daily Paper" en="Daily Paper" />
               <div className="panel-index">01</div>
             </div>
-            <div className="current-focus-list">
-              {zhSite.currentFocus.map((focus, index) => (
-                <div key={focus} className="current-focus-item">
-                  <span className="focus-counter">{String(index + 1).padStart(2, "0")}</span>
-                  <Localized zh={focus} en={enSite.currentFocus[index]} />
+            <div className="daily-paper-list">
+              {dailyPaperPicks.length ? (
+                dailyPaperPicks.map((paper, index) => (
+                  <Link key={`${paper.date}-${paper.slug}`} className="daily-paper-row" href={`/everyday-paper/${paper.slug}`}>
+                    <span className="daily-paper-count">{String(index + 1).padStart(2, "0")}</span>
+                    <div className="daily-paper-row-copy">
+                      <h3>{paper.title}</h3>
+                      <div className="daily-paper-meta">
+                        <span>{paper.date}</span>
+                        <span>{paper.source}</span>
+                      </div>
+                    </div>
+                    <span className="entry-action" aria-hidden="true">
+                      <ArrowOutIcon />
+                    </span>
+                  </Link>
+                ))
+              ) : (
+                <div className="daily-paper-empty">
+                  <p>No papers queued for {currentDate} yet.</p>
+                  <Link className="index-more-link" href="/everyday-paper">
+                    <span>Open archive</span>
+                    <span className="action-icon" aria-hidden="true">
+                      <ArrowOutIcon />
+                    </span>
+                  </Link>
                 </div>
-              ))}
-            </div>
-          </section>
-
-          <section className="content-panel rail-note-panel">
-            <Localized className="section-title rail-note-title" zh="Signal" en="Signal" />
-            <p className="kicker rail-note-copy">
-              <Localized zh={zhSite.status} en={enSite.status} />
-            </p>
-            <div className="signal-grid compact-signal-grid">
-              <div className="signal-chip">
-                <strong>02</strong>
-                <span>published notes</span>
-              </div>
-              <div className="signal-chip">
-                <strong>MD + LaTeX</strong>
-                <span>paper archive</span>
-              </div>
-              <div className="signal-chip">
-                <strong>Vibe</strong>
-                <span>tools in progress</span>
-              </div>
+              )}
             </div>
           </section>
         </aside>

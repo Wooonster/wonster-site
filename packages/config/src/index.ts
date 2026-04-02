@@ -30,6 +30,9 @@ export type Dictionary = {
     eyebrow: string;
     heading: string;
     intro: string;
+    everydayPaper: string;
+    everydayPaperIntro: string;
+    everydayPaperEmpty: string;
     latest: string;
     archive: string;
     tags: string;
@@ -73,7 +76,7 @@ export const dictionaries: Record<LocalePreference, Dictionary> = {
       identityLine: "builder / writer / paper reader / tool maker",
       intro: "我在做 AI 论文阅读、vibe coding 项目和知识工作流工具。这里收纳长期笔记、实验中的产品，以及还在生长的判断。",
       primaryCta: "进入博客",
-      secondaryCta: "看项目",
+      secondaryCta: "看今日论文",
       featured: "精选文章",
       links: "Elsewhere",
       status: "写作是主线，工具是实验场，归档是长期记忆。",
@@ -110,6 +113,9 @@ export const dictionaries: Record<LocalePreference, Dictionary> = {
       eyebrow: "博客",
       heading: "长文、实验、以及逐步沉淀下来的清晰思考。",
       intro: "文章以 Markdown 为底层内容格式，支持数学公式与代码高亮，后续可直接从 Obsidian 对齐导入。",
+      everydayPaper: "Everyday Paper",
+      everydayPaperIntro: "按天记录值得反复回看的论文入口。先搭一个轻量的每日推荐层，让近期在读内容和长期归档彼此分开。",
+      everydayPaperEmpty: "今天的论文推荐还没有放进来。",
       latest: "最新文章",
       archive: "归档",
       tags: "标签",
@@ -151,7 +157,7 @@ export const dictionaries: Record<LocalePreference, Dictionary> = {
       identityLine: "builder / writer / paper reader / tool maker",
       intro: "I work on AI paper reading, vibe-coded products, and tools for knowledge workflows. This is where long-form notes, live experiments, and durable judgment accumulate.",
       primaryCta: "Open the blog",
-      secondaryCta: "See projects",
+      secondaryCta: "Check today's paper",
       featured: "Featured writing",
       links: "Elsewhere",
       status: "Writing is the spine. Tools are the lab. The archive is the long memory.",
@@ -188,6 +194,9 @@ export const dictionaries: Record<LocalePreference, Dictionary> = {
       eyebrow: "Blog",
       heading: "Long-form notes, experiments, and thinking that has been sharpened over time.",
       intro: "Posts use Markdown as the source of truth with math support and syntax-highlighted code, ready for future Obsidian import.",
+      everydayPaper: "Everyday Paper",
+      everydayPaperIntro: "A dated stream of papers worth revisiting, separated from the longer archive of written notes.",
+      everydayPaperEmpty: "No paper picks are published here yet.",
       latest: "Latest posts",
       archive: "Archive",
       tags: "Tags",
@@ -228,6 +237,10 @@ export const socialLinks = [
   {
     label: "Email",
     href: "mailto:wooonster@outlook.com"
+  },
+  {
+    label: "Github",
+    href: "https://github.com/Wooonster"
   },
   {
     label: "RSS",

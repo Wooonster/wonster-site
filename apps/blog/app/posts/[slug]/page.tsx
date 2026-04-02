@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { dictionaries } from "@whatsmy/config";
 import { Localized } from "@whatsmy/ui";
+import { ArticleToc } from "../../../components/article-toc";
 import { getAdjacentPosts, getPostBySlug, getPostSlugs, renderPost, toTagSlug } from "../../../lib/content";
 
 type PageProps = {
@@ -103,22 +104,13 @@ export default async function PostPage({ params }: PageProps) {
         </article>
 
         {post.headings.length ? (
-          <aside className="article-aside enter-rise delay-3">
-            <div className="article-toc">
-              <Localized className="article-toc-title" zh="本文目录" en="On this page" />
-              <div className="toc-list article-toc-list">
-                {post.headings.map((heading) => (
-                  <a
-                    key={heading.id}
-                    className={`toc-link toc-link-level-${heading.level}`}
-                    href={`#${heading.id}`}
-                  >
-                    {heading.text}
-                  </a>
-                ))}
-              </div>
-            </div>
-          </aside>
+          <ArticleToc
+            captionEn="Scroll aware"
+            captionZh="滑动目录"
+            headings={post.headings}
+            titleEn="On this page"
+            titleZh="本文目录"
+          />
         ) : null}
       </section>
     </main>
