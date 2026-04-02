@@ -87,6 +87,7 @@ export default function SitePage() {
           <section className="signal-panel current-panel flat-panel site-rail-section enter-rise delay-3">
             <div className="section-head compact-head">
               <Localized className="section-title" zh="Daily Paper" en="Daily Paper" />
+              {showingPastWeek ? <div className="daily-paper-window-label">Past 7d</div> : null}
             </div>
             <div className="daily-paper-list">
               {dailyPaperPicks.length ? (

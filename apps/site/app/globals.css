@@ -228,6 +228,14 @@ body {
   gap: 0.85rem;
 }
 
+.daily-paper-window-label {
+  color: var(--foreground-soft);
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
 .daily-paper-empty {
   display: grid;
   gap: 0.85rem;
