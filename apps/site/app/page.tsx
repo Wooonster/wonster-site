@@ -95,7 +95,7 @@ export default function SitePage() {
                   <Link key={`${paper.date}-${paper.slug}`} className="daily-paper-row" href={`/everyday-paper/${paper.slug}`}>
                     <span className="daily-paper-count">{String(index + 1).padStart(2, "0")}</span>
                     <div className="daily-paper-row-copy">
-                      <h3>{paper.title}</h3>
+                      <Localized as="h3" zh={paper.title.zh} en={paper.title.en} />
                       <div className="daily-paper-meta">
                         <span>{paper.date}</span>
                         <span>{paper.source}</span>

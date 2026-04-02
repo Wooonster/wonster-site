@@ -52,8 +52,8 @@ export default function EverydayPaperPage() {
                 <span className="everyday-paper-source-pill">{paper.source}</span>
               </div>
               <Link className="everyday-paper-archive-mainlink" href={`/everyday-paper/${paper.slug}`}>
-                <h2>{paper.title}</h2>
-                <p>{paper.cardSummary}</p>
+                <Localized as="h2" zh={paper.title.zh} en={paper.title.en} />
+                <Localized as="p" zh={paper.cardSummary.zh} en={paper.cardSummary.en} />
               </Link>
               <div className="everyday-paper-archive-meta">
                 <span>{paper.date}</span>

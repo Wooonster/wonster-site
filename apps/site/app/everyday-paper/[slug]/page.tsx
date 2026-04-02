@@ -36,8 +36,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 
   return {
-    title: `${paper.title} | Everyday Paper`,
-    description: paper.cardSummary
+    title: `${paper.title.en} | Everyday Paper`,
+    description: paper.cardSummary.en
   };
 }
 
@@ -60,8 +60,13 @@ export default async function EverydayPaperDetailPage({ params }: PageProps) {
           <Localized className="eyebrow" zh="Everyday Paper" en="Everyday Paper" />
           <div className="issue-stamp">{paper.date}</div>
         </div>
-        <h1 className="display-title everyday-paper-detail-title">{paper.title}</h1>
-        <p className="kicker everyday-paper-detail-summary">{paper.cardSummary}</p>
+        <Localized as="h1" className="display-title everyday-paper-detail-title" zh={paper.title.zh} en={paper.title.en} />
+        <Localized
+          as="p"
+          className="kicker everyday-paper-detail-summary"
+          zh={paper.cardSummary.zh}
+          en={paper.cardSummary.en}
+        />
 
         <div className="everyday-paper-detail-meta">
           <span>{paper.topic}</span>
@@ -97,7 +102,7 @@ export default async function EverydayPaperDetailPage({ params }: PageProps) {
         <Link className="index-more-link everyday-paper-back-link" href="/everyday-paper">
           <span>Back to Everyday Paper</span>
         </Link>
-        <article className="everyday-paper-prose">{content}</article>
+        <Localized as="article" className="everyday-paper-prose" zh={content.zh} en={content.en} />
       </section>
     </main>
   );
