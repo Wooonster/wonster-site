@@ -235,19 +235,19 @@ export const dictionaries: Record<LocalePreference, Dictionary> = {
 
 export const socialLinks = [
   {
-    label: "Email",
-    href: "mailto:wooonster@outlook.com"
+    label: "Blog",
+    href: "https://blog.whatsmy.fun"
   },
   {
     label: "Github",
     href: "https://github.com/Wooonster"
   },
   {
-    label: "RSS",
-    href: "https://blog.whatsmy.fun/feed.xml"
+    label: "Email",
+    href: "mailto:wooonster@outlook.com"
   },
   {
-    label: "Blog",
-    href: "https://blog.whatsmy.fun"
+    label: "RSS",
+    href: "https://blog.whatsmy.fun/feed.xml"
   }
 ] as const;

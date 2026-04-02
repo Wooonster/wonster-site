@@ -99,6 +99,12 @@ body {
   gap: clamp(1rem, 1.8vw, 1.45rem);
 }
 
+.site-home-title {
+  max-width: none;
+  font-size: clamp(1.9rem, 4vw, 3.7rem);
+  line-height: 0.98;
+}
+
 .site-thesis-panel .mono-kicker {
   width: fit-content;
   padding: 0.45rem 0.85rem;
@@ -116,7 +122,6 @@ body {
 }
 
 .issue-stamp,
-.panel-index,
 .project-type {
   border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--line));
   border-radius: 999px;
@@ -126,8 +131,7 @@ body {
   text-transform: uppercase;
 }
 
-.issue-stamp,
-.panel-index {
+.issue-stamp {
   padding: 0.4rem 0.68rem;
   font-size: 0.7rem;
 }
@@ -306,10 +310,6 @@ body {
   gap: 1rem;
 }
 
-.everyday-paper-display {
-  max-width: 11ch;
-}
-
 .everyday-paper-lead {
   max-width: 42rem;
 }
@@ -422,7 +422,8 @@ body {
 }
 
 .everyday-paper-detail-title {
-  max-width: 11ch;
+  font-size: clamp(1.9rem, 3.95vw, 3.55rem);
+  line-height: 0.96;
 }
 
 .everyday-paper-detail-summary {
@@ -670,7 +671,7 @@ body {
 
 .home-elsewhere {
   display: grid;
-  gap: 0.9rem;
+  gap: 0.65rem;
   padding-top: 0.15rem;
 }
 
@@ -705,27 +706,45 @@ body {
 }
 
 .elsewhere-list {
-  grid-template-columns: repeat(3, minmax(0, max-content));
-  gap: 0.7rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0;
+  min-width: 0;
 }
 
 .elsewhere-link {
   display: inline-flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 0.65rem;
-  padding: 0.72rem 0.8rem 0.72rem 0.95rem;
-  border-radius: 999px;
-  border: 1px solid color-mix(in srgb, var(--line) 88%, transparent);
-  background: color-mix(in srgb, var(--background-elevated) 72%, transparent);
+  min-height: 2.75rem;
+  padding: 0.35rem 0;
   color: var(--foreground-soft);
-  font-size: 0.88rem;
+  font-size: clamp(0.9rem, 0.84rem + 0.14vw, 0.98rem);
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  transition: color 220ms var(--ease-out-quart);
+}
+
+.elsewhere-link + .elsewhere-link {
+  position: relative;
+  margin-left: 1.1rem;
+}
+
+.elsewhere-link + .elsewhere-link::before {
+  content: "";
+  position: absolute;
+  left: -0.65rem;
+  top: 50%;
+  width: 0.24rem;
+  height: 0.24rem;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--accent) 55%, var(--line));
+  transform: translateY(-50%);
 }
 
 .elsewhere-link:hover {
-  transform: translateY(-2px);
-  border-color: color-mix(in srgb, var(--accent) 42%, var(--line));
   color: var(--foreground);
+  transform: none;
 }
 
 html[data-locale="zh"] .display-title {
@@ -735,6 +754,17 @@ html[data-locale="zh"] .display-title {
   font-weight: 700;
   line-height: 1.02;
   letter-spacing: -0.08em;
+}
+
+html[data-locale="zh"] .everyday-paper-display,
+html[data-locale="zh"] .everyday-paper-detail-title,
+html[data-locale="zh"] .site-home-title {
+  max-width: none;
+}
+
+html[data-locale="zh"] .site-home-title {
+  font-size: clamp(2.1rem, 4.3vw, 4rem);
+  line-height: 1;
 }
 
 html[data-locale="zh"] .section-title {
@@ -762,8 +792,7 @@ html[data-locale="zh"] .current-focus-item {
 
   .home-hero-grid,
   .home-index-grid,
-  .everyday-paper-archive-list,
-  .elsewhere-list {
+  .everyday-paper-archive-list {
     grid-template-columns: 1fr;
   }
 
@@ -808,5 +837,26 @@ html[data-locale="zh"] .current-focus-item {
 
   .entry-action {
     display: none;
+  }
+
+  .home-elsewhere {
+    gap: 0.45rem;
+  }
+
+  .elsewhere-list {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 0.15rem;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .elsewhere-list::-webkit-scrollbar {
+    display: none;
+  }
+
+  .elsewhere-link {
+    flex: 0 0 auto;
+    min-height: 2.9rem;
   }
 }

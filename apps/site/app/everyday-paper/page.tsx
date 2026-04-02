@@ -27,7 +27,6 @@ export default function EverydayPaperPage() {
       <section className="hero-panel everyday-paper-hero enter-rise delay-1">
         <div className="hero-kicker-row">
           <Localized className="eyebrow" zh="Everyday Paper" en="Everyday Paper" />
-          <div className="issue-stamp">Edition 01</div>
         </div>
         <h1 className="display-title everyday-paper-display">
           <Localized zh="每天都能直接打开的论文入口。" en="A paper queue worth opening every day." />

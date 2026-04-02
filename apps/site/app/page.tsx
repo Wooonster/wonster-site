@@ -6,6 +6,19 @@ import { getCurrentSiteDateStamp } from "../lib/current-date";
 import { getEverydayPapers } from "../lib/everyday-paper";
 import { featuredPosts } from "../lib/site-data";
 
+function toDayNumber(dateStamp: string) {
+  const [year, month, day] = dateStamp.split("-").map(Number);
+  return Math.floor(Date.UTC(year, month - 1, day) / 86_400_000);
+}
+
+function fromDayNumber(dayNumber: number) {
+  const date = new Date(dayNumber * 86_400_000);
+  const year = date.getUTCFullYear();
+  const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+  const day = String(date.getUTCDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 function isExternalLink(href: string) {
   return href.startsWith("http") && !href.includes("whatsmy.fun");
 }
@@ -28,9 +41,18 @@ export default function SitePage() {
   const zhSite = dictionaries.zh.site;
   const enSite = dictionaries.en.site;
   const currentDate = getCurrentSiteDateStamp();
-  const dailyPaperPicks = getEverydayPapers()
-    .filter((paper) => paper.date === currentDate)
-    .slice(0, 5);
+  const allDailyPapers = getEverydayPapers();
+  const currentDayNumber = toDayNumber(currentDate);
+  const pastWeekStartDate = fromDayNumber(currentDayNumber - 6);
+  const todaysPapers = allDailyPapers.filter((paper) => paper.date === currentDate);
+  const pastWeekPapers = allDailyPapers
+    .filter((paper) => {
+      const dayDiff = currentDayNumber - toDayNumber(paper.date);
+      return dayDiff >= 0 && dayDiff < 7;
+    })
+    .slice(0, 6);
+  const showingPastWeek = todaysPapers.length === 0;
+  const dailyPaperPicks = showingPastWeek ? pastWeekPapers : todaysPapers.slice(0, 5);
   const todayPaperHref = dailyPaperPicks[0] ? `/everyday-paper/${dailyPaperPicks[0].slug}` : "/everyday-paper";
 
   return (
@@ -41,11 +63,10 @@ export default function SitePage() {
         <div className="hero-panel site-hero-copy site-thesis-panel enter-rise delay-1">
           <div className="hero-kicker-row">
             <Localized className="eyebrow" zh={zhSite.eyebrow} en={enSite.eyebrow} />
-            <div className="issue-stamp">Edition 01</div>
           </div>
           <Localized className="mono-kicker" zh={zhSite.identityLine} en={enSite.identityLine} />
           <div className="site-thesis-main">
-            <h1 className="display-title">
+            <h1 className="display-title site-home-title">
               <Localized zh={zhSite.heading} en={enSite.heading} />
             </h1>
             <p className="kicker site-lead">
@@ -60,18 +81,12 @@ export default function SitePage() {
               </Link>
             </div>
           </div>
-          <div className="site-inline-ledger">
-            <span>paper-first notes</span>
-            <span>tooling in public</span>
-            <span>cn / en interface</span>
-          </div>
         </div>
 
         <aside className="home-side-rail enter-rise delay-2">
           <section className="signal-panel current-panel flat-panel site-rail-section enter-rise delay-3">
             <div className="section-head compact-head">
               <Localized className="section-title" zh="Daily Paper" en="Daily Paper" />
-              <div className="panel-index">01</div>
             </div>
             <div className="daily-paper-list">
               {dailyPaperPicks.length ? (
@@ -92,7 +107,7 @@ export default function SitePage() {
                 ))
               ) : (
                 <div className="daily-paper-empty">
-                  <p>No papers queued for {currentDate} yet.</p>
+                  <p>No papers queued between {pastWeekStartDate} and {currentDate} yet.</p>
                   <Link className="index-more-link" href="/everyday-paper">
                     <span>Open archive</span>
                     <span className="action-icon" aria-hidden="true">
@@ -179,9 +194,8 @@ export default function SitePage() {
       <section className="home-elsewhere enter-rise delay-4">
         <div className="section-head compact-head">
           <Localized className="eyebrow" zh={zhSite.links} en={enSite.links} />
-          <div className="panel-index">02</div>
         </div>
-        <div className="elsewhere-list">
+        <nav className="elsewhere-list" aria-label="Elsewhere links">
           {socialLinks.map((link) => {
             const external = link.href.startsWith("http");
 
@@ -194,13 +208,10 @@ export default function SitePage() {
                 target={external ? "_blank" : undefined}
               >
                 <span>{link.label}</span>
-                <span className="action-icon" aria-hidden="true">
-                  <ArrowOutIcon />
-                </span>
               </Link>
             );
           })}
-        </div>
+        </nav>
       </section>
 
       <section className="traffic-footnote enter-rise delay-4" aria-label="Traffic note">
