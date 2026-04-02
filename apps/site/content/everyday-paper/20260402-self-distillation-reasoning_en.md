@@ -38,7 +38,7 @@ tags:
 **What specific problem does this paper address?**
 Self-distillation — post-training where the same model acts as both teacher (conditioned on ground-truth solutions) and student (unconditioned) via KL-divergence minimization on next-token distributions — consistently reduces response length in math reasoning tasks, yet paradoxically *degrades* mathematical reasoning performance despite training only on correct trajectories. The paper seeks a mechanistic explanation for this failure mode and identifies its boundary conditions.
 
-Formally: given a model π₀, teacher conditioning `c ∈ {∅, s, s\think, ỹ}`, and student objective `L_KL(π_θ || π_teacher(·|c))`, why does richer c degrade out-of-distribution reasoning accuracy even when teacher outputs have high answer correctness?
+Formally: given a model $\pi_0$, teacher conditioning $c \in \{\emptyset, s, s\setminus \text{think}, \tilde{y}\}$, and student objective $L_{\mathrm{KL}}(\pi_\theta \,\|\, \pi_{\text{teacher}}(\cdot \mid c))$, why does richer $c$ degrade out-of-distribution reasoning accuracy even when teacher outputs have high answer correctness?
 
 **Why do existing methods fail here?**
 Standard self-distillation works by matching student to teacher distributions. When teacher conditioning is rich (full solution s), the teacher produces confident, concise outputs with near-zero uncertainty expressions. The student, trained to match these distributions, learns to suppress "epistemic verbalization" — tokens like "wait," "hmm," "let me reconsider" that maintain multiple hypothesis pathways [paper]. Prior distillation work in chemistry and coding domains does not encounter this failure because those domains have repetitive task types where epistemic expressions are unnecessary; mathematical reasoning requires OOD generalization across compositionally diverse problem types where uncertainty maintenance is critical [paper, inferred].
@@ -69,7 +69,7 @@ Self-distillation is widely used as an efficient post-training technique because
 
 *Step 4 — Task coverage analysis (Section 6):*
 - Compare self-distillation across three domains with different OOD/task-type structure: ScienceQ&A (chemistry, 90% overlap), LiveCodeBench v6 (coding, 100% overlap), DAPO-Math-17k (math, non-overlapping OOD)
-- Vary dataset size `|𝒟| ∈ {1, 8, 64, 128, 512}` to study coverage effect
+- Vary dataset size $|\mathcal{D}| \in \{1, 8, 64, 128, 512\}$ to study coverage effect
 
 **What's actually new:** The paper's key conceptual contribution is naming and isolating "epistemic verbalization" as a mechanistic variable. Prior work observed length reduction with self-distillation but attributed it to efficiency gains; this paper demonstrates that length reduction is a symptom of epistemic suppression and that this suppression specifically harms OOD performance. The two-factor model (information richness × task diversity) is new [paper].
 

@@ -67,9 +67,16 @@ The SFT → OOD degradation is severe: SFT on terminal tasks drops AIME25 from 8
 r_func(s, a) = 1[a ∈ M(s)]
 where M(s) is the set of locally acceptable actions per domain-specific verifier (not exact string match)
 
-*Step 3 — GRPO optimization on D_pivot:*
-`J_PivotRL(θ) = E_{s~D_pivot, \{aᵢ\}~π_θ_old} [ (1/G) Σᵢ min(wᵢ(θ)Âᵢ, clip(wᵢ(θ),1-ε,1+ε)Âᵢ) − D_KL ]`
-where Âᵢ are group-normalized advantages using functional rewards
+*Step 3 — GRPO optimization on $D_{\text{pivot}}$:*
+
+$$
+J_{\text{PivotRL}}(\theta) = \mathbb{E}_{s \sim D_{\text{pivot}}, \{a_i\} \sim \pi_{\theta,\text{old}}}
+\left[
+\frac{1}{G}\sum_i \min\left(w_i(\theta)\hat{A}_i, \operatorname{clip}(w_i(\theta), 1-\epsilon, 1+\epsilon)\hat{A}_i\right) - D_{\mathrm{KL}}
+\right]
+$$
+
+where $\hat{A}_i$ are group-normalized advantages using functional rewards
 
 **Theoretical grounding:**
 - **Proposition 3.1**: Group-normalized advantage is zero iff all samples have identical reward → formally justifies filtering for variance > 0.

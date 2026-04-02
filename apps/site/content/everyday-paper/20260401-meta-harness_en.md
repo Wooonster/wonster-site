@@ -36,7 +36,7 @@ tags:
 ## Section 1 — Problem and Motivation
 
 **What specific problem does this paper address?**
-Given a frozen LLM M and a task distribution 𝒳, the problem is finding an optimal harness H* — an executable Python program that governs what information the model stores, retrieves, and receives — to maximize expected reward: H* = argmax_H 𝔼[r(τ, x)]. Current harness design is manual, labor-intensive, and produces large performance variance (up to 6× gaps between harnesses on the same model). The paper seeks automated, end-to-end harness search.
+Given a frozen LLM $M$ and a task distribution $\mathcal{X}$, the problem is finding an optimal harness $H^*$ — an executable Python program that governs what information the model stores, retrieves, and receives — to maximize expected reward: $H^* = \arg\max_H \mathbb{E}[r(\tau, x)]$. Current harness design is manual, labor-intensive, and produces large performance variance (up to 6× gaps between harnesses on the same model). The paper seeks automated, end-to-end harness search.
 
 **Why do existing methods fail here?**
 Prior text optimizers (GEPA, OpenEvolve, TTT-Discover, Best-of-N) are poorly matched to this search space because they severely compress feedback [paper]: some condition only on current candidates, others on scalar scores or short summaries. The paper shows that harness diagnostics require up to 10,000,000 tokens of execution trace information per iteration — far beyond what these pipelines can transmit. Table 3 demonstrates this conclusively: giving the proposer only scores yields 34.6% median accuracy vs. 50.0% with full trace access [paper].

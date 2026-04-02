@@ -67,9 +67,16 @@ SFT → OOD 退化十分严重：Terminal 任务的 SFT 训练将 AIME25 从 86.
 r_func(s, a) = 1[a ∈ M(s)]
 其中 M(s) 为领域专用验证器接受的局部可接受动作集（非精确字符串匹配）
 
-*步骤 3 — 在 D_pivot 上进行 GRPO 优化：*
-`J_PivotRL(θ) = E_{s~D_pivot, \{aᵢ\}~π_θ_old} [ (1/G) Σᵢ min(wᵢ(θ)Âᵢ, clip(wᵢ(θ),1-ε,1+ε)Âᵢ) − D_KL ]`
-其中 Âᵢ 为使用功能奖励的组归一化优势
+*步骤 3 — 在 $D_{\text{pivot}}$ 上进行 GRPO 优化：*
+
+$$
+J_{\text{PivotRL}}(\theta) = \mathbb{E}_{s \sim D_{\text{pivot}}, \{a_i\} \sim \pi_{\theta,\text{old}}}
+\left[
+\frac{1}{G}\sum_i \min\left(w_i(\theta)\hat{A}_i, \operatorname{clip}(w_i(\theta), 1-\epsilon, 1+\epsilon)\hat{A}_i\right) - D_{\mathrm{KL}}
+\right]
+$$
+
+其中 $\hat{A}_i$ 为使用功能奖励的组归一化优势
 
 **理论基础：**
 - **命题 3.1**：当所有奖励相同时，组归一化优势为零 → 形式化证明了过滤方差 > 0 的必要性。
