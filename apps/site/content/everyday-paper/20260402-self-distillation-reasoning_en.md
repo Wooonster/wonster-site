@@ -60,7 +60,7 @@ Self-distillation is widely used as an efficient post-training technique because
 - Epistemic verbalization operationalized as frequency of tokens like "wait," "hmm," "let me reconsider"
 
 *Step 2 — SFT ablation (Section 4):*
-- Construct two 800-sample datasets: 𝒟_ug (unguided, ~12k tokens/response, high epistemic markers) and 𝒟_sg (solution-guided, ~2k tokens/response, suppressed epistemic markers)
+- Construct two 800-sample datasets: $\mathcal{D}_{\mathrm{ug}}$ (unguided, ~12k tokens/response, high epistemic markers) and $\mathcal{D}_{\mathrm{sg}}$ (solution-guided, ~2k tokens/response, suppressed epistemic markers)
 - Fine-tune on each; evaluate on AIME24/25, AMC23, MATH500
 
 *Step 3 — On-policy self-distillation (SDPO) experiments (Section 5):*
@@ -74,7 +74,7 @@ Self-distillation is widely used as an efficient post-training technique because
 **What's actually new:** The paper's key conceptual contribution is naming and isolating "epistemic verbalization" as a mechanistic variable. Prior work observed length reduction with self-distillation but attributed it to efficiency gains; this paper demonstrates that length reduction is a symptom of epistemic suppression and that this suppression specifically harms OOD performance. The two-factor model (information richness × task diversity) is new [paper].
 
 **Complexity:**
-- Training: identical to standard GRPO/SDPO — O(batch × seq_len²) for attention [inferred]
+- Training: identical to standard GRPO/SDPO — $O(\text{batch} \times \text{seq\_len}^2)$ for attention [inferred]
 - No additional inference cost [inferred]
 - The analytical framework is the contribution; no new training algorithm proposed
 
@@ -84,7 +84,7 @@ Self-distillation is widely used as an efficient post-training technique because
 
 **Main results — SFT ablation (Section 4, Table 2):**
 
-| Benchmark | Base | SFT on 𝒟_ug (unguided) | SFT on 𝒟_sg (solution-guided) | Δ (guided vs. base) |
+| Benchmark | Base | SFT on $\mathcal{D}_{\mathrm{ug}}$ (unguided) | SFT on $\mathcal{D}_{\mathrm{sg}}$ (solution-guided) | Δ (guided vs. base) |
 |---|---|---|---|---|
 | AIME24 | 54.79% [paper] | 51.04% [paper] | 20.21% [paper] | −34.58 |
 | AIME25 | 37.92% [paper] | 40.00% [paper] | 12.71% [paper] | −25.21 |
@@ -100,7 +100,7 @@ Self-distillation is widely used as an efficient post-training technique because
 | Qwen3-8B (thinking ON) | AIME24 | — | stable [paper] | deteriorates [paper] | significant [paper] |
 
 **Ablation findings:**
-Key ablation (Table 2): training exclusively on correct solution-guided trajectories (𝒟_sg) causes catastrophic degradation despite 0% training error rate. This directly isolates epistemic suppression as the cause — not answer incorrectness. Fixed teacher (EMA=0.0) consistently outperforms moving teacher (EMA=0.05) by avoiding feedback-loop amplification [paper]. Top-k variation (100 vs. 256) has no significant effect [paper].
+Key ablation (Table 2): training exclusively on correct solution-guided trajectories ($\mathcal{D}_{\mathrm{sg}}$) causes catastrophic degradation despite 0% training error rate. This directly isolates epistemic suppression as the cause — not answer incorrectness. Fixed teacher (EMA=0.0) consistently outperforms moving teacher (EMA=0.05) by avoiding feedback-loop amplification [paper]. Top-k variation (100 vs. 256) has no significant effect [paper].
 
 **Statistical rigor:**
 - No confidence intervals or standard deviations on any result [paper].

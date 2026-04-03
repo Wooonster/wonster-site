@@ -51,16 +51,16 @@ Harness engineering is currently the single largest lever practitioners have ove
 **Core contribution:** This paper proposes Meta-Harness, which gives an agentic proposer (Claude Code with Opus 4.6) unrestricted filesystem access to all prior candidate code, execution traces, and scores, enabling causal hypothesis formation about failures that prior compressed-feedback optimizers cannot support.
 
 **Pipeline:**
-- *Initialization:* A population of harnesses (zero-shot, few-shot, and hand-crafted baselines) is evaluated and stored in a filesystem 𝒟 alongside their execution traces and scores.
-- *Proposal:* A coding agent (Claude Code) queries 𝒟 via standard tools (grep, cat), reads source code (41% of reads), execution traces (40%), and score summaries (6%), then proposes k new harnesses.
-- *Evaluation:* Proposed harnesses are executed, interface-compliance-validated, and their results stored back to 𝒟.
+- *Initialization:* A population of harnesses (zero-shot, few-shot, and hand-crafted baselines) is evaluated and stored in a filesystem $\mathcal{D}$ alongside their execution traces and scores.
+- *Proposal:* A coding agent (Claude Code) queries $\mathcal{D}$ via standard tools (grep, cat), reads source code (41% of reads), execution traces (40%), and score summaries (6%), then proposes $k$ new harnesses.
+- *Evaluation:* Proposed harnesses are executed, interface-compliance-validated, and their results stored back to $\mathcal{D}$.
 - *Iteration:* The loop runs for ~20 iterations (~60 total harness evaluations per domain).
 - Training/inference gap: None — the harness is code that wraps inference; there is no gradient-based training.
 
 **What's actually new:** Prior optimizers treat optimization as a text-in/text-out problem, forcing all feedback through a narrow summarization bottleneck. Meta-Harness abandons the summarization assumption entirely: instead of compressing 10M tokens into a prompt, it stores them as files and lets the proposer selectively retrieve what it needs. The key insight is that diagnostic information for code optimization is inherently sparse — you need the specific trace where the harness failed, not an average summary.
 
 **Complexity:**
-- Each iteration: O(k × n_eval) harness evaluations where n_eval is the number of held-out examples [inferred]
+- Each iteration: $O(k \times n_{\mathrm{eval}})$ harness evaluations where $n_{\mathrm{eval}}$ is the number of held-out examples [inferred]
 - Filesystem storage grows linearly with iterations and trace size [inferred]
 - Proposer itself (Claude Code Opus 4.6) runs unconstrained agentic sessions; no formal complexity bound given [paper omits this]
 

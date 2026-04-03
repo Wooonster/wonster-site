@@ -57,15 +57,15 @@ The SFT → OOD degradation is severe: SFT on terminal tasks drops AIME25 from 8
 **Pipeline:**
 
 *Step 1 — Offline pivot identification:*
-- Extract all assistant turns from expert SFT trajectories → candidate set D_cand
-- For each candidate state s, sample K local rollouts from reference policy π₀
-- Compute μ̂(s) = mean functional reward, σ̂²(s) = reward variance
-- Retain turn iff: σ̂²(s) > 0 AND μ̂(s) < λ_diff (difficulty threshold)
-- Result: D_pivot ⊂ D_cand containing only mixed-outcome, challenging states
+- Extract all assistant turns from expert SFT trajectories → candidate set $D_{\text{cand}}$
+- For each candidate state $s$, sample $K$ local rollouts from reference policy $\pi_0$
+- Compute $\hat{\mu}(s)$ = mean functional reward, $\hat{\sigma}^2(s)$ = reward variance
+- Retain turn iff: $\hat{\sigma}^2(s) > 0$ AND $\hat{\mu}(s) < \lambda_{\text{diff}}$ (difficulty threshold)
+- Result: $D_{\text{pivot}} \subset D_{\text{cand}}$ containing only mixed-outcome, challenging states
 
 *Step 2 — Functional reward assignment:*
-r_func(s, a) = 1[a ∈ M(s)]
-where M(s) is the set of locally acceptable actions per domain-specific verifier (not exact string match)
+$r_{\text{func}}(s, a) = \mathbf{1}[a \in M(s)]$
+where $M(s)$ is the set of locally acceptable actions per domain-specific verifier (not exact string match)
 
 *Step 3 — GRPO optimization on $D_{\text{pivot}}$:*
 
@@ -80,14 +80,14 @@ where $\hat{A}_i$ are group-normalized advantages using functional rewards
 
 **Theoretical grounding:**
 - **Proposition 3.1**: Group-normalized advantage is zero iff all samples have identical reward → formally justifies filtering for variance > 0.
-- **Theorem 3.2**: Natural gradient norm = Var(r(s,a)) / β² → reward variance directly determines learning signal strength. High-variance pivots maximize gradient magnitude.
-- **Theorem 3.3**: Functional reward optimization preserves reference policy ordering within both M(s) and M(s)ᶜ → explains OOD retention: actions not related to the current task maintain their reference policy ratios unchanged.
+- **Theorem 3.2**: Natural gradient norm = $\operatorname{Var}(r(s, a)) / \beta^2$ → reward variance directly determines learning signal strength. High-variance pivots maximize gradient magnitude.
+- **Theorem 3.3**: Functional reward optimization preserves reference policy ordering within both $M(s)$ and $M(s)^c$ → explains OOD retention: actions not related to the current task maintain their reference policy ratios unchanged.
 
 **What's actually new:** The pivot filtering idea (select turns by outcome variance of local rollouts) is the core novelty. The insight that 71% of random intermediate turns are uninformative under group-normalized objectives is a concrete empirical discovery with theoretical backing in Proposition 3.1. Theorem 3.3's conservative KL update property provides a principled explanation for OOD retention that prior local RL work lacked. The combination of these three elements — variance-based filtering + functional rewards + theoretically grounded conservation — distinguishes PivotRL from naive local RL.
 
 **Complexity:**
-- Pivot identification: O(|D_cand| × K × rollout_cost) — parallelizable offline [inferred]
-- RL training: operates on |D_pivot| ≪ |D_cand| turns; paper claims ~4× fewer rollout turns than E2E RL on coding tasks [paper]
+- Pivot identification: $O(|D_{\text{cand}}| \times K \times \text{rollout\_cost})$ — parallelizable offline [inferred]
+- RL training: operates on $|D_{\text{pivot}}| \ll |D_{\text{cand}}|$ turns; paper claims ~4× fewer rollout turns than E2E RL on coding tasks [paper]
 - No precompute required at inference time; trained model is deployed directly [inferred]
 
 ---
@@ -125,9 +125,9 @@ Worst single regression: SFT terminal training drops AIME25 from 86.04% to 21.56
 
 | Configuration | Accuracy |
 |---|---|
-| Full PivotRL (D_pivot + functional reward) | 63.81 [paper] |
-| Without pivot filtering (D_cand + functional) | 59.68 [paper] |
-| Without functional reward (D_cand + strict match) | 57.34 [paper] |
+| Full PivotRL ($D_{\text{pivot}}$ + functional reward) | 63.81 [paper] |
+| Without pivot filtering ($D_{\text{cand}}$ + functional) | 59.68 [paper] |
+| Without functional reward ($D_{\text{cand}}$ + strict match) | 57.34 [paper] |
 | SFT baseline | 58.44 [paper] |
 
 Both components contribute independently; pivot filtering alone adds ~2.3 pp over SFT; functional reward alone adds ~0.9 pp; combined adds ~5.4 pp.
@@ -183,5 +183,5 @@ The 4× reduction is demonstrated only for SWE-Bench coding tasks. Other domains
 **Reproduction gotchas:**
 - Domain-specific verifiers are central to functional rewards; the paper describes these qualitatively but does not release verifier code.
 - Pivot filtering requires K rollouts per candidate state — for large trajectory datasets (281K for τ²-Bench), this is a significant offline compute cost that the paper does not fully characterize.
-- The difficulty threshold λ_diff requires tuning per domain; the paper gives values but does not describe sensitivity.
+- The difficulty threshold $\lambda_{\text{diff}}$ requires tuning per domain; the paper gives values but does not describe sensitivity.
 - SWE-Bench verifier uses "tool-call names only" — a deliberately coarse signal whose interaction with GRPO normalization may produce unexpected behavior not observed in other domains.

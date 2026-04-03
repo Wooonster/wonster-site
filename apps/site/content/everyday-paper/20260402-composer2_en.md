@@ -48,7 +48,7 @@ Cursor is a widely deployed coding assistant; a specialized model that genuinely
 
 ## Section 2 — Technical Method
 
-**Core contribution:** This paper proposes a two-phase training recipe (continued pretraining on coding data + large-scale RL with domain-matched reward signals) applied to a 1.04T/32B-active MoE base model, combined with algorithmic fixes to standard GRPO (length bias removal, k₁ KL estimator, asynchronous weight sync, MoE router replay) that enable stable long-horizon RL on realistic software engineering tasks.
+**Core contribution:** This paper proposes a two-phase training recipe (continued pretraining on coding data + large-scale RL with domain-matched reward signals) applied to a 1.04T/32B-active MoE base model, combined with algorithmic fixes to standard GRPO (length bias removal, $k_1$ KL estimator, asynchronous weight sync, MoE router replay) that enable stable long-horizon RL on realistic software engineering tasks.
 
 **Pipeline:**
 
@@ -63,15 +63,15 @@ Cursor is a widely deployed coding assistant; a specialized model that genuinely
 - Key algorithmic choices:
   - Removed GRPO length standardization term (avoids length bias) [paper]
   - No group advantage standard deviation normalization [paper]
-  - KL estimator: k₁ = -log r (standard), not k₃ (high variance when distributions diverge, as shown in Figure 4) [paper]
+  - KL estimator: $k_1 = -\log r$ (standard), not $k_3$ (high variance when distributions diverge, as shown in Figure 4) [paper]
   - Asynchronous infrastructure: inference workers update weights mid-rollout via delta compression over S3
   - MoE router replay: training overrides router expert assignment to match inference selections, filtered to reduce p99 numeric mismatch
 - Self-summarization: chained generations with summary as context; final reward applies to all tokens in chain; consistently reduces error vs. prompt-based compaction [paper]
 - Behavioral rewards: auxiliary rewards for coding style, communication quality; nonlinear length penalty:
-  C_length(k,q)(x) = [(1+kx)^(1-q) - 1] / [k(1-q)]
+  $C_{\mathrm{length}}(k, q)(x) = \frac{(1+kx)^{1-q} - 1}{k(1-q)}$
   This incentivizes quick solutions on easy tasks while permitting longer thinking on hard ones [paper]
 
-**What's actually new:** The specific combination of (a) MoE router replay for training-inference alignment, (b) k₁ vs. k₃ KL estimator selection backed by theoretical analysis, (c) asynchronous weight synchronization via S3 delta compression for world-scale distributed RL, and (d) self-summarization with chain-level reward are novel engineering contributions not previously combined in a single system. The domain-matched pretraining loss correlation analysis (Figure 2, showing cross-entropy loss predicts downstream RL performance) provides practical guidance for base model selection.
+**What's actually new:** The specific combination of (a) MoE router replay for training-inference alignment, (b) $k_1$ vs. $k_3$ KL estimator selection backed by theoretical analysis, (c) asynchronous weight synchronization via S3 delta compression for world-scale distributed RL, and (d) self-summarization with chain-level reward are novel engineering contributions not previously combined in a single system. The domain-matched pretraining loss correlation analysis (Figure 2, showing cross-entropy loss predicts downstream RL performance) provides practical guidance for base model selection.
 
 **Complexity:**
 - Model: 1.04T total parameters, 32B active (MoE) [paper]
@@ -94,7 +94,7 @@ Cursor is a widely deployed coding assistant; a specialized model that genuinely
 † GPT-5.4 safety filters refused some Terminal-Bench tasks
 
 **Ablation findings:**
-Figure 5 (RL training dynamics) shows both average and best-of-K performance increase throughout training with "no observed trade-off between average performance and best-of-K" [paper]. This directly addresses the common criticism that RL merely reweights existing solutions. Figure 2 demonstrates that continued pretraining cross-entropy loss linearly predicts downstream RL accuracy across three compute levels on Qwen3-Coder-30B-A3B [paper]. Figure 4 validates the k₁ vs. k₃ KL estimator choice on synthetic Gaussians [paper].
+Figure 5 (RL training dynamics) shows both average and best-of-K performance increase throughout training with "no observed trade-off between average performance and best-of-K" [paper]. This directly addresses the common criticism that RL merely reweights existing solutions. Figure 2 demonstrates that continued pretraining cross-entropy loss linearly predicts downstream RL accuracy across three compute levels on Qwen3-Coder-30B-A3B [paper]. Figure 4 validates the $k_1$ vs. $k_3$ KL estimator choice on synthetic Gaussians [paper].
 
 No ablation on individual RL algorithmic changes (e.g., length normalization removal in isolation, router replay in isolation) is provided [paper omits this].
 
@@ -118,7 +118,7 @@ No ablation on individual RL algorithmic changes (e.g., length normalization rem
 CursorBench's construction, decontamination, and evaluation criteria are controlled by Cursor Research. The 61.3% on CursorBench vs. 63.9% for GPT-5.4 makes Composer 2 competitive but not best-in-class even on its own benchmark. Without independent access to CursorBench, the primary evaluation claim cannot be reproduced.
 
 **Experimental concern: no ablation on RL algorithmic components** [paper-evident, moderate]
-The paper introduces several RL modifications (length normalization removal, k₁ estimator, router replay, self-summarization). No experiment isolates the contribution of each change. The theoretical justifications for k₁ and length normalization are credible, but the empirical contribution of each is unknown.
+The paper introduces several RL modifications (length normalization removal, $k_1$ estimator, router replay, self-summarization). No experiment isolates the contribution of each change. The theoretical justifications for $k_1$ and length normalization are credible, but the empirical contribution of each is unknown.
 
 **Experimental concern: missing compute transparency** [paper-evident, minor]
 A technical report from a well-resourced company training a 1T-parameter model should report GPU-hours and training cost. This omission makes it impossible to assess whether the approach is reproducible by academic groups.
@@ -128,7 +128,7 @@ A technical report from a well-resourced company training a 1T-parameter model s
 
 **Honest strengths:**
 - The base model selection methodology (three-dimensional evaluation: FreshBench, state tracking, codebase perplexity) is principled and replicable [paper].
-- The k₁ vs. k₃ KL estimator analysis (Figure 4) is theoretically grounded and practically important for MoE RL stability.
+- The $k_1$ vs. $k_3$ KL estimator analysis (Figure 4) is theoretically grounded and practically important for MoE RL stability.
 - The RL training dynamics result (no average/best-of-K trade-off) is a meaningful empirical finding that pushes back against a common assumption in the RLHF literature.
 - The infrastructure description (Anyrun, asynchronous weight sync, fault tolerance) is unusually detailed for a technical report and genuinely useful for practitioners.
 
@@ -138,7 +138,7 @@ A technical report from a well-resourced company training a 1T-parameter model s
 
 **TL;DR:** Composer 2 applies continued pretraining + large-scale RL to Kimi K2.5 (1.04T/32B MoE) with several algorithmic fixes to standard GRPO, achieving 61.3% on CursorBench (37% relative improvement over Composer 1.5) and 73.7% on SWE-bench Multilingual. The primary caveat is that the main benchmark is internal and unverified, and no ablations isolate the contribution of individual RL modifications.
 
-**Innovation classification:** *Engineering advance* — the training recipe and infrastructure innovations (asynchronous RL at scale, MoE router replay, k₁ estimator selection) are engineering improvements within the established SFT + RL framework, not a paradigm shift.
+**Innovation classification:** *Engineering advance* — the training recipe and infrastructure innovations (asynchronous RL at scale, MoE router replay, $k_1$ estimator selection) are engineering improvements within the established SFT + RL framework, not a paradigm shift.
 
 **Deployment readiness:** Deployed in Cursor as a production model. The model itself is not open-sourced; the infrastructure components (ThunderKittens kernels) are partially open. Academic reproduction requires independent access to equivalent compute (~NVIDIA B300 cluster) and training data.
 
