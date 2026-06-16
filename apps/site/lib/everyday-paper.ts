@@ -66,6 +66,10 @@ function normalizePaperMarkdown(source: string) {
     .replace(/~/g, " ");
 }
 
+function removeLeadingMarkdownTitle(source: string) {
+  return source.replace(/^\s*# [^\n]+(?:\r?\n)+/, "");
+}
+
 function inferLocaleFromFilePath(filePath: string): LocalePreference | undefined {
   if (/_cn\.mdx?$/i.test(filePath)) {
     return "zh";
@@ -196,7 +200,7 @@ export function getEverydayPaperSlugs() {
 
 async function compileEverydayPaperMarkdown(source: string) {
   const compiled = await compileMDX({
-    source,
+    source: removeLeadingMarkdownTitle(source),
     options: {
       mdxOptions: {
         remarkPlugins: [remarkGfm, remarkMath],

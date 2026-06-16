@@ -3,7 +3,7 @@ import { PreferenceRail } from "@whatsmy/ui";
 import { getCurrentSiteDateLabel } from "../lib/current-date";
 
 type SiteHeaderProps = {
-  active: "home" | "everyday-paper" | "wiki";
+  active: "home" | "everyday-paper";
 };
 
 export function SiteHeader({ active }: SiteHeaderProps) {
@@ -20,15 +20,14 @@ export function SiteHeader({ active }: SiteHeaderProps) {
       <div className="topbar-rail">
         <nav className="topbar-nav" aria-label="Primary">
           <Link data-active={active === "home"} href="/">
-            Home
+            <span className="topbar-nav-label">Home</span>
           </Link>
           <Link data-active={active === "everyday-paper"} href="/everyday-paper">
-            Everyday Paper
+            <span className="topbar-nav-label">Everyday Paper</span>
           </Link>
-          <Link data-active={active === "wiki"} href="/wiki">
-            Wiki
+          <Link href="https://blog.whatsmy.fun">
+            <span className="topbar-nav-label">Blog</span>
           </Link>
-          <Link href="https://blog.whatsmy.fun">Blog</Link>
         </nav>
       </div>
       <div className="topbar-tools">

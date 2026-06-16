@@ -56,9 +56,15 @@ export default async function EverydayPaperDetailPage({ params }: PageProps) {
       <SiteHeader active="everyday-paper" />
 
       <section className="hero-panel everyday-paper-detail-hero enter-rise delay-1">
+        <div className="everyday-paper-detail-topline">
+          <Link className="everyday-paper-back-link everyday-paper-detail-back" href="/everyday-paper">
+            <span aria-hidden="true">←</span>
+            <Localized zh="返回 Everyday Paper" en="Back to Everyday Paper" />
+          </Link>
+          <div className="issue-stamp">{paper.date}</div>
+        </div>
         <div className="hero-kicker-row">
           <Localized className="eyebrow" zh="Everyday Paper" en="Everyday Paper" />
-          <div className="issue-stamp">{paper.date}</div>
         </div>
         <Localized as="h1" className="display-title everyday-paper-detail-title" zh={paper.title.zh} en={paper.title.en} />
         <Localized
@@ -68,14 +74,8 @@ export default async function EverydayPaperDetailPage({ params }: PageProps) {
           en={paper.cardSummary.en}
         />
 
-        <div className="everyday-paper-detail-meta">
-          <span>{paper.topic}</span>
-          <span>{paper.source}</span>
-          {paper.authors?.length ? <span>{paper.authors.join(", ")}</span> : null}
-        </div>
-
         <div className="stack-inline everyday-paper-detail-links">
-          <Link className="solid-link" href={paper.arxivUrl} rel="noreferrer" target="_blank">
+          <Link className="ghost-link" href={paper.arxivUrl} rel="noreferrer" target="_blank">
             <span>arXiv</span>
             <span className="action-icon" aria-hidden="true">
               <ArrowOutIcon />
@@ -99,9 +99,6 @@ export default async function EverydayPaperDetailPage({ params }: PageProps) {
       </section>
 
       <section className="content-panel everyday-paper-detail-body enter-rise delay-2">
-        <Link className="index-more-link everyday-paper-back-link" href="/everyday-paper">
-          <span>Back to Everyday Paper</span>
-        </Link>
         <Localized as="article" className="everyday-paper-prose" zh={content.zh} en={content.en} />
       </section>
     </main>

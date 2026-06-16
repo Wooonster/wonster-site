@@ -2166,16 +2166,28 @@ body {
   color: var(--foreground-soft);
   font-size: 0.84rem;
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
-.paper-queue-size-row,
+.paper-queue-date-row,
 .paper-queue-pager {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
 }
 
-.paper-queue-size-button,
+.paper-queue-date-row {
+  min-width: 0;
+  overflow-x: auto;
+  padding-bottom: 0.08rem;
+  scrollbar-width: none;
+}
+
+.paper-queue-date-row::-webkit-scrollbar {
+  display: none;
+}
+
+.paper-queue-date-button,
 .paper-queue-pager button {
   appearance: none;
   min-height: 2.16rem;
@@ -2187,9 +2199,10 @@ body {
   cursor: pointer;
   font: inherit;
   font-size: 0.84rem;
+  white-space: nowrap;
 }
 
-.paper-queue-size-button[data-active="true"] {
+.paper-queue-date-button[data-active="true"] {
   border-color: color-mix(in srgb, var(--accent) 46%, var(--line));
   color: var(--foreground);
 }
@@ -2423,13 +2436,13 @@ body {
 
 .project-type,
 .everyday-paper-source-pill,
-.paper-queue-size-button,
+.paper-queue-date-button,
 .paper-queue-pager button {
   border-color: color-mix(in srgb, var(--line) 94%, transparent);
   color: color-mix(in srgb, var(--foreground-soft) 88%, var(--foreground));
 }
 
-.paper-queue-size-button[data-active="true"] {
+.paper-queue-date-button[data-active="true"] {
   border-color: color-mix(in srgb, var(--foreground) 18%, var(--line));
   background: color-mix(in srgb, var(--foreground) 3%, var(--background));
 }
@@ -2501,7 +2514,7 @@ body {
 .topbar-date,
 .project-type,
 .everyday-paper-source-pill,
-.paper-queue-size-button,
+.paper-queue-date-button,
 .paper-queue-pager button,
 .issue-stamp,
 .wiki-tag-filter-btn,
@@ -2599,7 +2612,7 @@ body {
 .wiki-tag-filter-btn:hover,
 .wiki-tag-filter-btn[data-active],
 .wiki-related-chip:hover,
-.paper-queue-size-button[data-active="true"] {
+.paper-queue-date-button[data-active="true"] {
   background: color-mix(in srgb, var(--foreground) 4%, var(--background));
 }
 
@@ -2607,7 +2620,7 @@ body {
 [data-theme="dark"] .wiki-tag-filter-btn:hover,
 [data-theme="dark"] .wiki-tag-filter-btn[data-active],
 [data-theme="dark"] .wiki-related-chip:hover,
-[data-theme="dark"] .paper-queue-size-button[data-active="true"] {
+[data-theme="dark"] .paper-queue-date-button[data-active="true"] {
   background: color-mix(in srgb, var(--foreground) 7%, var(--background));
 }
 
@@ -2750,7 +2763,7 @@ body {
 
 .topbar-nav a[data-active="true"],
 .topbar .chip-button[data-active="true"],
-.paper-queue-size-button[data-active="true"],
+.paper-queue-date-button[data-active="true"],
 .paper-queue-pager button:not(:disabled):hover {
   box-shadow: inset 0 -1px 0 var(--accent-secondary);
   color: var(--foreground);
@@ -2953,7 +2966,7 @@ body {
 
 .topbar-nav a[data-active="true"],
 .topbar .chip-button[data-active="true"],
-.paper-queue-size-button[data-active="true"],
+.paper-queue-date-button[data-active="true"],
 .paper-queue-pager button:not(:disabled):hover {
   box-shadow: inset 0 -1px 0 var(--accent-secondary);
   color: var(--foreground);
@@ -3016,7 +3029,7 @@ body {
 
 .topbar-nav a[data-active="true"],
 .topbar .chip-button[data-active="true"],
-.paper-queue-size-button[data-active="true"],
+.paper-queue-date-button[data-active="true"],
 .paper-queue-pager button:not(:disabled):hover {
   box-shadow: inset 0 -1px 0 var(--accent-secondary);
   color: var(--foreground);
@@ -3193,7 +3206,7 @@ body {
 }
 
 .index-more-link,
-.paper-queue-size-button,
+.paper-queue-date-button,
 .paper-queue-pager button,
 .wiki-graph-clear,
 .wiki-tag-filter-btn {
@@ -3319,17 +3332,17 @@ body {
 
 .paper-queue-toolbar {
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: 1rem;
 }
 
-.paper-queue-size-row,
+.paper-queue-date-row,
 .paper-queue-pager {
   gap: 0.7rem;
 }
 
-.paper-queue-size-button,
+.paper-queue-date-button,
 .paper-queue-pager button {
   padding: 0 0 0.12rem;
   color: var(--foreground-soft);
@@ -3337,7 +3350,7 @@ body {
   font-weight: 650;
 }
 
-.paper-queue-size-button[data-active="true"],
+.paper-queue-date-button[data-active="true"],
 .paper-queue-pager button:not(:disabled):hover {
   background: transparent;
   box-shadow: inset 0 -1px 0 var(--accent-secondary);
@@ -3593,7 +3606,7 @@ body {
 
 .topbar-nav a[data-active="true"],
 .topbar .chip-button[data-active="true"],
-.paper-queue-size-button[data-active="true"],
+.paper-queue-date-button[data-active="true"],
 .paper-queue-pager button:not(:disabled):hover {
   box-shadow: inset 0 -1px 0 var(--accent-secondary);
   color: var(--foreground);

@@ -65,7 +65,7 @@ export const dictionaries: Record<LocalePreference, Dictionary> = {
       projects: [
         {
           title: "Academic Paper Reading Skill",
-          description: "面向论文分析与总结的 ClawHub skill。",
+          description: "Everyday Paper 使用的论文分析与总结 ClawHub skill。",
           href: "https://clawhub.ai/wooonster/paper-reading",
           type: "skill"
         },
@@ -120,7 +120,7 @@ export const dictionaries: Record<LocalePreference, Dictionary> = {
       projects: [
         {
           title: "Academic Paper Reading Skill",
-          description: "A ClawHub skill for deep paper analysis and summarization.",
+          description: "The ClawHub paper-analysis skill behind Everyday Paper.",
           href: "https://clawhub.ai/wooonster/paper-reading",
           type: "skill"
         },

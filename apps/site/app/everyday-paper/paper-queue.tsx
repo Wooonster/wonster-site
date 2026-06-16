@@ -5,13 +5,19 @@ import Link from "next/link";
 import { Localized } from "@whatsmy/ui";
 import type { EverydayPaperEntry } from "../../lib/everyday-paper";
 
-type PageSize = 5 | 10 | 20 | "full";
-
 type PaperQueueProps = {
   papers: EverydayPaperEntry[];
 };
 
-const pageSizeOptions: PageSize[] = [5, 10, 20, "full"];
+type DateGroup = {
+  date: string;
+  papers: EverydayPaperEntry[];
+};
+
+type MonthGroup = {
+  monthKey: string;
+  dates: DateGroup[];
+};
 
 function ArrowOutIcon() {
   return (
@@ -27,96 +33,245 @@ function ArrowOutIcon() {
   );
 }
 
-export function PaperQueue({ papers }: PaperQueueProps) {
-  const [pageSize, setPageSize] = useState<PageSize>(5);
-  const [page, setPage] = useState(0);
-  const resolvedPageSize = pageSize === "full" ? papers.length || 1 : pageSize;
-  const pageCount = pageSize === "full" ? 1 : Math.max(1, Math.ceil(papers.length / resolvedPageSize));
-  const safePage = Math.min(page, pageCount - 1);
-  const start = safePage * resolvedPageSize;
-  const visiblePapers = useMemo(
-    () => (pageSize === "full" ? papers : papers.slice(start, start + resolvedPageSize)),
-    [pageSize, papers, resolvedPageSize, start]
-  );
-  const rangeStart = papers.length ? start + 1 : 0;
-  const rangeEnd = Math.min(start + visiblePapers.length, papers.length);
+function getMonthKey(date: string) {
+  return date.slice(0, 7);
+}
 
-  function updatePageSize(nextPageSize: PageSize) {
-    setPageSize(nextPageSize);
-    setPage(0);
+function getMonthParts(monthKey: string) {
+  const [year, month] = monthKey.split("-");
+  const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+  return {
+    year,
+    month: monthNames[Number(month) - 1] ?? month
+  };
+}
+
+export function PaperQueue({ papers }: PaperQueueProps) {
+  const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<"date" | "all">("date");
+  const monthGroups = useMemo<MonthGroup[]>(() => {
+    const groups = new Map<string, EverydayPaperEntry[]>();
+
+    papers.forEach((paper) => {
+      const group = groups.get(paper.date) ?? [];
+      group.push(paper);
+      groups.set(paper.date, group);
+    });
+
+    const dateGroups = [...groups.entries()]
+      .map(([date, datedPapers]) => ({ date, papers: datedPapers }))
+      .sort((left, right) => right.date.localeCompare(left.date));
+
+    const groupedMonths = new Map<string, DateGroup[]>();
+
+    dateGroups.forEach((group) => {
+      const monthKey = getMonthKey(group.date);
+      const monthDates = groupedMonths.get(monthKey) ?? [];
+      monthDates.push(group);
+      groupedMonths.set(monthKey, monthDates);
+    });
+
+    return [...groupedMonths.entries()]
+      .map(([monthKey, dates]) => ({ monthKey, dates }))
+      .sort((left, right) => right.monthKey.localeCompare(left.monthKey));
+  }, [papers]);
+  const activeMonth = monthGroups.find((group) => group.monthKey === selectedMonth) ?? monthGroups[0];
+  const activeMonthKey = activeMonth?.monthKey ?? null;
+  const activeDateIndex = Math.max(0, activeMonth?.dates.findIndex((group) => group.date === selectedDate) ?? 0);
+  const currentGroup = activeMonth?.dates[activeDateIndex];
+  const visiblePapers = currentGroup?.papers ?? [];
+  const dayCount = Math.max(1, activeMonth?.dates.length ?? 0);
+  const showingAll = viewMode === "all";
+  const currentDateLabel = showingAll
+    ? `All · ${papers.length} ${papers.length === 1 ? "paper" : "papers"}`
+    : currentGroup
+    ? `${currentGroup.date} · ${visiblePapers.length} ${visiblePapers.length === 1 ? "paper" : "papers"}`
+    : "No papers";
+
+  function selectMonth(month: MonthGroup) {
+    setViewMode("date");
+    setSelectedMonth(month.monthKey);
+    setSelectedDate(month.dates[0]?.date ?? null);
+  }
+
+  function moveDay(offset: number) {
+    if (!activeMonth) return;
+
+    setViewMode("date");
+    const nextIndex = Math.min(Math.max(activeDateIndex + offset, 0), activeMonth.dates.length - 1);
+    setSelectedMonth(activeMonth.monthKey);
+    setSelectedDate(activeMonth.dates[nextIndex]?.date ?? null);
   }
 
   return (
-    <div className="paper-queue">
-      <div className="paper-queue-toolbar" aria-label="Paper Queue pagination">
-        <div className="paper-queue-range">
-          {rangeStart}-{rangeEnd} / {papers.length}
+    <>
+      <section className="page-intro everyday-paper-hero enter-rise delay-1">
+        <div className="everyday-paper-hero-head">
+          <Localized className="eyebrow" zh="Daily Reading" en="Daily Reading" />
         </div>
-        <div className="paper-queue-size-row" aria-label="Items per page">
-          {pageSizeOptions.map((option) => (
-            <button
-              key={option}
-              className="paper-queue-size-button"
-              data-active={pageSize === option}
-              onClick={() => updatePageSize(option)}
-              type="button"
-            >
-              {option === "full" ? "Full" : option}
-            </button>
-          ))}
-        </div>
-        <div className="paper-queue-pager">
-          <button disabled={safePage === 0} onClick={() => setPage((current) => Math.max(0, current - 1))} type="button">
-            Prev
-          </button>
-          <span>
-            {safePage + 1} / {pageCount}
-          </span>
-          <button
-            disabled={safePage >= pageCount - 1}
-            onClick={() => setPage((current) => Math.min(pageCount - 1, current + 1))}
-            type="button"
-          >
-            Next
-          </button>
-        </div>
-      </div>
+        <Localized as="h1" className="display-title everyday-paper-display" zh="Everyday Paper" en="Everyday Paper" />
+        <Localized
+          as="p"
+          className="everyday-paper-ai-note"
+          zh={
+            <>
+              All generated by AI with{" "}
+              <Link href="https://clawhub.ai/wooonster/paper-reading" rel="noreferrer" target="_blank">
+                Academic Paper Reading SKILL
+              </Link>
+            </>
+          }
+          en={
+            <>
+              All generated by AI with{" "}
+              <Link href="https://clawhub.ai/wooonster/paper-reading" rel="noreferrer" target="_blank">
+                Academic Paper Reading SKILL
+              </Link>
+            </>
+          }
+        />
 
-      <div className="everyday-paper-archive-list">
-        {visiblePapers.map((paper, index) => (
-          <article key={`${paper.date}-${paper.slug}`} className="everyday-paper-archive-card">
-            <div className="everyday-paper-archive-topline">
-              <span className="daily-paper-count">{String(start + index + 1).padStart(2, "0")}</span>
-              <span className="everyday-paper-source-pill">{paper.source}</span>
+        <div className="paper-queue-toolbar" aria-label="Everyday Paper date pagination">
+          <div className="paper-queue-date-picker">
+            <div className="paper-queue-date-panel paper-queue-month-panel">
+              <span className="paper-queue-date-label">Month</span>
+              <div className="paper-queue-month-row" aria-label="Select month">
+                {monthGroups.map((group) => {
+                  const { month, year } = getMonthParts(group.monthKey);
+
+                  return (
+                    <button
+                      key={group.monthKey}
+                      aria-label={`${month} ${year}`}
+                      aria-pressed={!showingAll && activeMonthKey === group.monthKey}
+                      className="paper-queue-month-button"
+                      data-active={!showingAll && activeMonthKey === group.monthKey}
+                      onClick={() => selectMonth(group)}
+                      type="button"
+                    >
+                      <span className="paper-queue-month-name">{month}</span>
+                      <span className="paper-queue-month-year">{year}</span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-            <Link className="everyday-paper-archive-mainlink" href={`/everyday-paper/${paper.slug}`}>
-              <Localized as="h2" zh={paper.title.zh} en={paper.title.en} />
-              <Localized as="p" zh={paper.cardSummary.zh} en={paper.cardSummary.en} />
-            </Link>
-            <div className="everyday-paper-archive-meta">
-              <span>{paper.date}</span>
-              <span>{paper.topic}</span>
+            <div className="paper-queue-date-panel paper-queue-day-panel">
+              <span className="paper-queue-date-label">Day</span>
+              <div className="paper-queue-day-row" aria-label="Select day">
+                {(activeMonth?.dates ?? []).map((group) => (
+                  <button
+                    key={group.date}
+                    aria-current={!showingAll && currentGroup?.date === group.date ? "date" : undefined}
+                    aria-label={`${group.date}, ${group.papers.length} ${group.papers.length === 1 ? "paper" : "papers"}`}
+                    className="paper-queue-day-button"
+                    data-active={!showingAll && currentGroup?.date === group.date}
+                    onClick={() => {
+                      setViewMode("date");
+                      setSelectedDate(group.date);
+                    }}
+                    type="button"
+                  >
+                    <span className="paper-queue-day-number">{group.date.slice(8)}</span>
+                    <span className="paper-queue-day-count">{group.papers.length}</span>
+                  </button>
+                ))}
+              </div>
             </div>
-            <div className="stack-inline everyday-paper-archive-links">
-              <Link className="index-more-link" href={`/everyday-paper/${paper.slug}`}>
-                <span>Open summary</span>
-              </Link>
-              <Link className="ghost-link everyday-paper-source-link" href={paper.arxivUrl} target="_blank" rel="noreferrer">
-                <span>arXiv</span>
-                <span className="action-icon everyday-paper-archive-action" aria-hidden="true">
-                  <ArrowOutIcon />
+            <div className="paper-queue-date-panel paper-queue-all-panel">
+              <span className="paper-queue-date-label">All</span>
+              <div className="paper-queue-all-row" aria-label="Show all papers">
+                <button
+                  aria-label={`Show all ${papers.length} papers`}
+                  aria-pressed={showingAll}
+                  className="paper-queue-all-button"
+                  data-active={showingAll}
+                  onClick={() => setViewMode("all")}
+                  type="button"
+                >
+                  <span className="paper-queue-all-name">All</span>
+                  <span className="paper-queue-all-count">{papers.length}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+          <div className="paper-queue-toolbar-meta">
+            <div className="paper-queue-range">
+              {currentDateLabel}
+            </div>
+            {!showingAll ? (
+              <div className="paper-queue-pager">
+                <button disabled={activeDateIndex === 0} onClick={() => moveDay(-1)} type="button">
+                  Newer
+                </button>
+                <span>
+                  {activeDateIndex + 1} / {dayCount}
                 </span>
-              </Link>
-              <Link className="ghost-link everyday-paper-source-link" href={paper.alphaxivUrl} target="_blank" rel="noreferrer">
-                <span>alphaXiv</span>
-                <span className="action-icon everyday-paper-archive-action" aria-hidden="true">
-                  <ArrowOutIcon />
-                </span>
-              </Link>
+                <button
+                  disabled={!activeMonth || activeDateIndex >= activeMonth.dates.length - 1}
+                  onClick={() => moveDay(1)}
+                  type="button"
+                >
+                  Older
+                </button>
+              </div>
+            ) : null}
+          </div>
+        </div>
+      </section>
+
+      <section className="everyday-paper-archive enter-rise delay-2">
+        <div className="paper-queue">
+          {showingAll ? (
+            <ul className="paper-queue-all-results">
+              {papers.map((paper) => (
+                <li key={paper.slug}>
+                  <Link href={`/everyday-paper/${paper.slug}`}>
+                    <Localized zh={paper.title.zh} en={paper.title.en} />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className="everyday-paper-archive-list">
+              {visiblePapers.map((paper) => (
+                <article key={`${paper.date}-${paper.slug}`} className="everyday-paper-archive-card">
+                  <div className="everyday-paper-archive-topline">
+                    <span className="everyday-paper-source-pill">{paper.source}</span>
+                  </div>
+                  <Link className="everyday-paper-archive-mainlink" href={`/everyday-paper/${paper.slug}`}>
+                    <Localized as="h2" zh={paper.title.zh} en={paper.title.en} />
+                    <Localized as="p" zh={paper.cardSummary.zh} en={paper.cardSummary.en} />
+                  </Link>
+                  <div className="everyday-paper-archive-meta">
+                    <span>{paper.date}</span>
+                    <span>{paper.topic}</span>
+                  </div>
+                  <div className="stack-inline everyday-paper-archive-links">
+                    <Link className="index-more-link" href={`/everyday-paper/${paper.slug}`}>
+                      <span>Open summary</span>
+                    </Link>
+                    <Link className="ghost-link everyday-paper-source-link" href={paper.arxivUrl} target="_blank" rel="noreferrer">
+                      <span>arXiv</span>
+                      <span className="action-icon everyday-paper-archive-action" aria-hidden="true">
+                        <ArrowOutIcon />
+                      </span>
+                    </Link>
+                    <Link className="ghost-link everyday-paper-source-link" href={paper.alphaxivUrl} target="_blank" rel="noreferrer">
+                      <span>alphaXiv</span>
+                      <span className="action-icon everyday-paper-archive-action" aria-hidden="true">
+                        <ArrowOutIcon />
+                      </span>
+                    </Link>
+                  </div>
+                </article>
+              ))}
             </div>
-          </article>
-        ))}
-      </div>
-    </div>
+          )}
+        </div>
+      </section>
+    </>
   );
 }
