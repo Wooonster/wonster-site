@@ -16,7 +16,7 @@ type Frontmatter = {
   title: string;
   date: string;
   summary: string;
-  tags: string[];
+  tags?: string[];
   draft?: boolean;
   featured?: boolean;
   cover?: string;
@@ -29,29 +29,17 @@ export type Heading = {
   level: number;
 };
 
-export type PostMeta = Frontmatter & {
+type PostMeta = Frontmatter & {
   slug: string;
   readingMinutes: string;
 };
 
-export type Post = PostMeta & {
+type Post = PostMeta & {
   source: string;
   headings: Heading[];
 };
 
 const POSTS_DIRECTORY = path.join(process.cwd(), "content", "posts");
-const OBSIDIAN_ASSETS: Record<string, { src: string; alt: string; caption: string }> = {
-  "Screenshot 2024-10-04 at 4.28.03 pm.png": {
-    src: "/images/obsidian/transformer-encoder-decoder.png",
-    alt: "Transformer encoder and decoder architecture",
-    caption: "Transformer encoder-decoder overview"
-  },
-  "Screenshot 2024-10-04 at 4.57.23 pm.png": {
-    src: "/images/obsidian/transformer-attention-diagram.png",
-    alt: "Scaled dot-product attention diagram",
-    caption: "Scaled dot-product attention"
-  }
-};
 
 const prettyCodeOptions = {
   theme: {
@@ -73,18 +61,6 @@ function walk(directory: string): string[] {
   });
 }
 
-function slugify(value: string) {
-  return value
-    .trim()
-    .toLowerCase()
-    .replace(/[^\w\u4e00-\u9fa5\s-]/g, "")
-    .replace(/\s+/g, "-");
-}
-
-export function toTagSlug(value: string) {
-  return slugify(value);
-}
-
 function extractHeadings(markdown: string) {
   const slugger = new GithubSlugger();
 
@@ -102,13 +78,7 @@ function extractHeadings(markdown: string) {
 function normalizeObsidianMarkdown(markdown: string) {
   return markdown
     .replace(/^!\[\[(.+?)\]\]$/gm, (_, assetName: string) => {
-      const asset = OBSIDIAN_ASSETS[assetName.trim()];
-
-      if (!asset) {
-        return `> Embedded asset omitted in web preview: ${assetName}`;
-      }
-
-      return `<figure class="obsidian-figure"><img src="${asset.src}" alt="${asset.alt}" /><figcaption>${asset.caption}</figcaption></figure>`;
+      return `> Embedded asset omitted in web preview: ${assetName}`;
     })
     .replace(/\[([^\]]+)\]\(obsidian:\/\/[^)]+\)/g, "$1")
     .replace(/\[\[(.+?)(\|.+?)?\]\]/g, "$1")
@@ -158,35 +128,6 @@ export function getPostBySlug(slug: string) {
 
 export function getPostSlugs() {
   return getAllPosts().map((post) => post.slug);
-}
-
-export function getPostsByTag(tag: string) {
-  return getAllPosts().filter((post) => post.tags.some((entry) => toTagSlug(entry) === tag.toLowerCase()));
-}
-
-export function getAllTags() {
-  return [...new Set(getAllPosts().flatMap((post) => post.tags))].sort((left, right) => left.localeCompare(right));
-}
-
-export function getArchive() {
-  const grouped = new Map<string, PostMeta[]>();
-
-  for (const post of getAllPosts()) {
-    const year = post.date.slice(0, 4);
-    grouped.set(year, [...(grouped.get(year) ?? []), post]);
-  }
-
-  return [...grouped.entries()].map(([year, posts]) => ({ year, posts }));
-}
-
-export function getAdjacentPosts(slug: string) {
-  const posts = getAllPosts();
-  const index = posts.findIndex((post) => post.slug === slug);
-
-  return {
-    next: index > 0 ? posts[index - 1] : null,
-    previous: index >= 0 && index < posts.length - 1 ? posts[index + 1] : null
-  };
 }
 
 export async function renderPost(post: Post) {

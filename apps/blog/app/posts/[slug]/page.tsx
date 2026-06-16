@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { dictionaries } from "@whatsmy/config";
 import { Localized } from "@whatsmy/ui";
 import { ArticleToc } from "../../../components/article-toc";
-import { getAdjacentPosts, getPostBySlug, getPostSlugs, renderPost, toTagSlug } from "../../../lib/content";
+import { getPostBySlug, getPostSlugs, renderPost } from "../../../lib/content";
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -40,7 +40,6 @@ export default async function PostPage({ params }: PageProps) {
   }
 
   const content = await renderPost(post);
-  const adjacent = getAdjacentPosts(slug);
 
   return (
     <main className="stacked article-page">
@@ -64,16 +63,6 @@ export default async function PostPage({ params }: PageProps) {
           <Localized className="article-abstract-label" zh="0 · 摘要" en="0 · Abstract" />
           <p className="article-abstract-copy">{post.summary}</p>
         </div>
-        <div className="article-keywords">
-          <Localized className="article-keywords-label" zh="Tags · 关键词" en="Tags · Keywords" />
-          <div className="tag-list article-tag-list">
-            {post.tags.map((tag) => (
-              <Link key={tag} className="tag article-tag" href={`/tags/${toTagSlug(tag)}`}>
-                {tag}
-              </Link>
-            ))}
-          </div>
-        </div>
       </header>
 
       {post.headings.length ? (
@@ -87,30 +76,6 @@ export default async function PostPage({ params }: PageProps) {
       <section className="article-layout article-reading-layout">
         <article className="article-main enter-rise delay-2">
           <div className="prose article-prose">{content}</div>
-
-          <nav className="post-navigation article-pagination" aria-label="Post navigation">
-            {adjacent.previous ? (
-              <Link className="article-nav-link" href={`/posts/${adjacent.previous.slug}`}>
-                <div className="article-nav-label">
-                  <Localized zh={dictionaries.zh.blog.previous} en={dictionaries.en.blog.previous} />
-                </div>
-                <div className="article-nav-title">{adjacent.previous.title}</div>
-              </Link>
-            ) : (
-              <div />
-            )}
-
-            {adjacent.next ? (
-              <Link className="article-nav-link article-nav-link-next" href={`/posts/${adjacent.next.slug}`}>
-                <div className="article-nav-label">
-                  <Localized zh={dictionaries.zh.blog.next} en={dictionaries.en.blog.next} />
-                </div>
-                <div className="article-nav-title">{adjacent.next.title}</div>
-              </Link>
-            ) : (
-              <div />
-            )}
-          </nav>
         </article>
       </section>
     </main>

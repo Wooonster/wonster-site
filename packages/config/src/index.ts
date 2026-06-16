@@ -27,33 +27,11 @@ export type Dictionary = {
     projects: SiteProject[];
   };
   blog: {
-    eyebrow: string;
-    heading: string;
-    intro: string;
-    everydayPaper: string;
-    everydayPaperIntro: string;
-    everydayPaperEmpty: string;
-    latest: string;
-    archive: string;
-    tags: string;
-    readArticle: string;
-    readMore: string;
     backToHome: string;
-    allPosts: string;
-    readingTime: string;
-    previous: string;
-    next: string;
-    tableOfContents: string;
-    noPosts: string;
-    filterBy: string;
-    viewArchive: string;
-    rss: string;
-    languageLabel: string;
   };
   nav: {
     home: string;
     blog: string;
-    archive: string;
   };
   toggle: {
     locale: string;
@@ -102,41 +80,19 @@ export const dictionaries: Record<LocalePreference, Dictionary> = {
           type: "plugin"
         },
         {
-          title: "Blog Archive",
-          description: "沉淀中的长文笔记、论文阅读与实验记录。",
-          href: "https://blog.whatsmy.fun/archive",
+          title: "Blog",
+          description: "当前保留的长文入口与论文训练笔记。",
+          href: "https://blog.whatsmy.fun",
           type: "writing"
         }
       ]
     },
     blog: {
-      eyebrow: "博客",
-      heading: "长文、实验、以及逐步沉淀下来的清晰思考。",
-      intro: "文章以 Markdown 为底层内容格式，支持数学公式与代码高亮，后续可直接从 Obsidian 对齐导入。",
-      everydayPaper: "Everyday Paper",
-      everydayPaperIntro: "按天记录值得反复回看的论文入口。先搭一个轻量的每日推荐层，让近期在读内容和长期归档彼此分开。",
-      everydayPaperEmpty: "今天的论文推荐还没有放进来。",
-      latest: "最新文章",
-      archive: "归档",
-      tags: "标签",
-      readArticle: "阅读全文",
-      readMore: "继续阅读",
-      backToHome: "回到博客首页",
-      allPosts: "全部文章",
-      readingTime: "阅读时间",
-      previous: "上一篇",
-      next: "下一篇",
-      tableOfContents: "目录",
-      noPosts: "这个分组下暂时还没有文章。",
-      filterBy: "筛选标签",
-      viewArchive: "查看归档",
-      rss: "RSS 订阅",
-      languageLabel: "正文语言"
+      backToHome: "回到博客首页"
     },
     nav: {
       home: "主站",
-      blog: "博客",
-      archive: "归档"
+      blog: "博客"
     },
     toggle: {
       locale: "语言",
@@ -183,41 +139,19 @@ export const dictionaries: Record<LocalePreference, Dictionary> = {
           type: "plugin"
         },
         {
-          title: "Blog Archive",
-          description: "Long-form notes on papers, systems, and model behavior.",
-          href: "https://blog.whatsmy.fun/archive",
+          title: "Blog",
+          description: "The current long-form writing entry point.",
+          href: "https://blog.whatsmy.fun",
           type: "writing"
         }
       ]
     },
     blog: {
-      eyebrow: "Blog",
-      heading: "Long-form notes, experiments, and thinking that has been sharpened over time.",
-      intro: "Posts use Markdown as the source of truth with math support and syntax-highlighted code, ready for future Obsidian import.",
-      everydayPaper: "Everyday Paper",
-      everydayPaperIntro: "A dated stream of papers worth revisiting, separated from the longer archive of written notes.",
-      everydayPaperEmpty: "No paper picks are published here yet.",
-      latest: "Latest posts",
-      archive: "Archive",
-      tags: "Tags",
-      readArticle: "Read article",
-      readMore: "Read more",
-      backToHome: "Back to blog home",
-      allPosts: "All posts",
-      readingTime: "Reading time",
-      previous: "Previous",
-      next: "Next",
-      tableOfContents: "Contents",
-      noPosts: "No posts are published in this section yet.",
-      filterBy: "Filter by tag",
-      viewArchive: "View archive",
-      rss: "RSS feed",
-      languageLabel: "Post language"
+      backToHome: "Back to blog home"
     },
     nav: {
       home: "Home",
-      blog: "Blog",
-      archive: "Archive"
+      blog: "Blog"
     },
     toggle: {
       locale: "Language",
@@ -245,9 +179,5 @@ export const socialLinks = [
   {
     label: "Email",
     href: "mailto:wooonster@outlook.com"
-  },
-  {
-    label: "RSS",
-    href: "https://blog.whatsmy.fun/feed.xml"
   }
 ] as const;

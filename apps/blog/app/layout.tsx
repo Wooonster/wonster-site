@@ -48,10 +48,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                       <Localized zh="Everyday Paper" en="Everyday Paper" />
                     </Link>
                     <Link data-active="true" href="/">
-                      <Localized zh={dictionaries.zh.nav.blog} en={dictionaries.en.nav.blog} />
-                    </Link>
-                    <Link href="/archive">
-                      <Localized zh={dictionaries.zh.nav.archive} en={dictionaries.en.nav.archive} />
+                      <Localized zh="布劳格" en={dictionaries.en.nav.blog} />
                     </Link>
                   </nav>
                 </div>

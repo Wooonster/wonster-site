@@ -37,8 +37,8 @@ export default function SitePage() {
           <h1 id="home-featured-title" className="section-title">
             <Localized zh="精选文章" en="Featured" />
           </h1>
-          <Link className="index-more-link" href="https://blog.whatsmy.fun/archive">
-            <span>Archive</span>
+          <Link className="index-more-link" href="https://blog.whatsmy.fun">
+            <span>Blog</span>
             <span className="action-icon" aria-hidden="true">
               <ArrowOutIcon />
             </span>
