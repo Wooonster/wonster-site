@@ -40,10 +40,6 @@ export type Dictionary = {
     dark: string;
     system: string;
   };
-  footer: {
-    copyright: string;
-    builtWith: string;
-  };
 };
 
 export const dictionaries: Record<LocalePreference, Dictionary> = {
@@ -100,10 +96,6 @@ export const dictionaries: Record<LocalePreference, Dictionary> = {
       light: "浅色",
       dark: "深色",
       system: "系统"
-    },
-    footer: {
-      copyright: "保留所有思考权利。",
-      builtWith: "基于 Next.js、Markdown、LaTeX 和 Shiki 构建。"
     }
   },
   en: {
@@ -159,10 +151,6 @@ export const dictionaries: Record<LocalePreference, Dictionary> = {
       light: "Light",
       dark: "Dark",
       system: "System"
-    },
-    footer: {
-      copyright: "All thinking rights reserved.",
-      builtWith: "Built with Next.js, Markdown, LaTeX, and Shiki."
     }
   }
 };

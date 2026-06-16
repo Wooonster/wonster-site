@@ -58,18 +58,6 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                 </div>
               </header>
               {children}
-              <footer className="footer-bar">
-                <div className="footer-stack">
-                  <Localized zh={dictionaries.zh.footer.copyright} en={dictionaries.en.footer.copyright} />
-                  <Localized zh={dictionaries.zh.footer.builtWith} en={dictionaries.en.footer.builtWith} />
-                </div>
-                <p className="footer-traffic-note">
-                  <Localized
-                    zh="博客已启用 Vercel Analytics，用来观察文章访问趋势与读者关注内容。"
-                    en="The blog uses Vercel Analytics to understand reading trends and which notes draw attention."
-                  />
-                </p>
-              </footer>
             </div>
           </PageShell>
         </AppProviders>

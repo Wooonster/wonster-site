@@ -247,19 +247,6 @@ body {
   align-content: start;
 }
 
-.footer-stack {
-  display: grid;
-  gap: 0.4rem;
-}
-
-.footer-traffic-note {
-  margin: 0;
-  max-width: 24rem;
-  font-size: 0.84rem;
-  line-height: 1.7;
-  text-align: right;
-}
-
 .post-navigation {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1262,11 +1249,6 @@ html[data-locale="zh"] .article-page .article-prose h2 {
 }
 
 @media (max-width: 720px) {
-  .footer-traffic-note {
-    max-width: none;
-    text-align: left;
-  }
-
   .post-navigation {
     grid-template-columns: 1fr;
   }

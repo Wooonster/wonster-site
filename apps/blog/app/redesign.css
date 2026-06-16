@@ -1494,3 +1494,122 @@ body {
     font-size: clamp(1.9rem, 10vw, 2.9rem);
   }
 }
+
+/* Blog home follows the main site's compact index rows. */
+.blog-index-page {
+  width: 100%;
+  margin-inline: 0;
+  padding: clamp(0.9rem, 2vw, 1.55rem) 0 clamp(2rem, 5vw, 4rem);
+}
+
+.blog-home-section {
+  position: relative;
+  display: grid;
+  gap: 0;
+  padding-left: 0;
+}
+
+.blog-home-section::before {
+  content: none;
+}
+
+.blog-home-section::after {
+  content: none;
+}
+
+.blog-home-entry-list {
+  display: grid;
+}
+
+.blog-home-entry {
+  display: grid;
+  grid-template-columns: 2.3rem minmax(0, 1fr) 1.45rem;
+  gap: clamp(0.75rem, 2vw, 1.25rem);
+  align-items: start;
+  padding: 0.9rem 0 1rem;
+  border-top: 0;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--blog-accent-2) 0%, transparent), transparent);
+  transition:
+    background 160ms var(--ease-out-quart),
+    transform 160ms var(--ease-out-quart),
+    color 160ms var(--ease-out-quart);
+}
+
+.blog-home-entry:hover {
+  background: linear-gradient(90deg, color-mix(in srgb, var(--blog-accent-2) 7%, transparent), transparent 72%);
+  transform: translateX(3px);
+}
+
+.blog-home-entry-count,
+.blog-home-entry-meta {
+  color: color-mix(in srgb, var(--blog-accent-3) 74%, var(--blog-muted));
+  font-family: var(--blog-font-code);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.blog-home-entry-copy {
+  display: grid;
+  gap: 0.38rem;
+  min-width: 0;
+}
+
+.blog-home-entry-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem 0.62rem;
+  color: color-mix(in srgb, var(--blog-muted) 88%, var(--blog-ink));
+}
+
+.blog-home-entry-meta span + span::before {
+  content: "/";
+  margin-right: 0.62rem;
+  color: color-mix(in srgb, var(--blog-line-strong) 88%, var(--blog-muted));
+}
+
+.blog-home-entry h2 {
+  margin: 0;
+  color: var(--blog-ink);
+  font-family: var(--blog-font-ui);
+  font-size: 1.03rem;
+  font-weight: 720;
+  letter-spacing: 0;
+  line-height: 1.35;
+}
+
+.blog-home-entry p {
+  max-width: 60ch;
+  margin: 0;
+  color: var(--blog-muted);
+  font-size: 0.88rem;
+  line-height: 1.72;
+}
+
+.blog-home-entry-action {
+  display: inline-grid;
+  place-items: center;
+  width: 1.45rem;
+  height: 1.45rem;
+  color: var(--blog-accent-2);
+}
+
+.blog-home-entry:hover .blog-home-entry-action {
+  color: var(--blog-ink);
+}
+
+@media (max-width: 760px) {
+  .blog-index-page {
+    width: 100%;
+    padding-top: 1.1rem;
+  }
+
+  .blog-home-entry {
+    grid-template-columns: 2rem minmax(0, 1fr);
+  }
+
+  .blog-home-entry-action {
+    display: none;
+  }
+}
