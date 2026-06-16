@@ -14,7 +14,7 @@ type LocalizedValue<T> = {
   en: T;
 };
 
-export type EverydayPaperFrontmatter = {
+type EverydayPaperFrontmatter = {
   title: string;
   slug: string;
   date: string;

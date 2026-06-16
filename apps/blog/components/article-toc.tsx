@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { type MouseEvent, useEffect, useState } from "react";
 import { Localized } from "@whatsmy/ui";
 import type { Heading } from "../lib/content";
 
@@ -8,26 +8,10 @@ type ArticleTocProps = {
   headings: Heading[];
   titleZh: string;
   titleEn: string;
-  captionZh: string;
-  captionEn: string;
 };
 
-export function ArticleToc({ headings, titleZh, titleEn, captionZh, captionEn }: ArticleTocProps) {
+export function ArticleToc({ headings, titleZh, titleEn }: ArticleTocProps) {
   const [activeId, setActiveId] = useState(headings[0]?.id ?? "");
-  const [visible, setVisible] = useState(false);
-
-  useEffect(() => {
-    const syncVisibility = () => {
-      setVisible(window.scrollY > 260);
-    };
-
-    syncVisibility();
-    window.addEventListener("scroll", syncVisibility, { passive: true });
-
-    return () => {
-      window.removeEventListener("scroll", syncVisibility);
-    };
-  }, []);
 
   useEffect(() => {
     const elements = headings
@@ -38,47 +22,97 @@ export function ArticleToc({ headings, titleZh, titleEn, captionZh, captionEn }:
       return;
     }
 
+    let frame = 0;
+
     const syncActiveHeading = () => {
-      const current = elements.filter((element) => element.getBoundingClientRect().top <= 140).at(-1) ?? elements[0];
+      frame = 0;
+
+      const visibleHeadings = elements
+        .map((element) => ({
+          element,
+          rect: element.getBoundingClientRect()
+        }))
+        .filter(({ rect }) => rect.bottom > 0 && rect.top < window.innerHeight);
+
+      const current =
+        visibleHeadings.sort((a, b) => a.rect.top - b.rect.top)[0]?.element ??
+        elements.filter((element) => element.getBoundingClientRect().top < window.innerHeight * 0.28).at(-1) ??
+        elements[0];
+
       setActiveId(current.id);
     };
 
-    const observer = new IntersectionObserver(syncActiveHeading, {
-      rootMargin: "-16% 0px -68% 0px",
-      threshold: [0, 1]
-    });
+    const scheduleSync = () => {
+      if (frame) {
+        return;
+      }
 
-    elements.forEach((element) => observer.observe(element));
+      frame = window.requestAnimationFrame(syncActiveHeading);
+    };
+
+    window.addEventListener("scroll", scheduleSync, { passive: true });
+    window.addEventListener("resize", scheduleSync);
     syncActiveHeading();
 
     return () => {
-      observer.disconnect();
+      if (frame) {
+        window.cancelAnimationFrame(frame);
+      }
+
+      window.removeEventListener("scroll", scheduleSync);
+      window.removeEventListener("resize", scheduleSync);
     };
   }, [headings]);
 
+  const handleTocClick = (event: MouseEvent<HTMLAnchorElement>, id: string) => {
+    const target = document.getElementById(id);
+
+    if (!target) {
+      return;
+    }
+
+    event.preventDefault();
+    setActiveId(id);
+    target.scrollIntoView({
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+      block: "start"
+    });
+    window.history.replaceState(null, "", `#${id}`);
+  };
+
   return (
     <aside className="article-aside enter-rise delay-3">
-      <div className="article-toc-shell" data-visible={visible}>
-        <div className="article-toc-meta">
-          <Localized className="article-toc-caption" zh={captionZh} en={captionEn} />
-          <span className="article-toc-rule" aria-hidden="true" />
+      <nav className="article-toc-shell source-toc" aria-label={`${titleZh} / ${titleEn}`}>
+        <div className="toc-rail-marks" aria-hidden="true">
+          {headings.map((heading, index) => (
+            <span
+              key={`rail-${heading.id}`}
+              className={`toc-rail-mark${activeId === heading.id ? " active" : ""}`}
+              data-pattern={index % 5}
+            />
+          ))}
         </div>
-        <div className="article-toc">
-          <Localized className="article-toc-title" zh={titleZh} en={titleEn} />
-          <div className="toc-list article-toc-list">
-            {headings.map((heading) => (
-              <a
-                key={heading.id}
-                className={`toc-link toc-link-level-${heading.level}`}
-                data-active={activeId === heading.id}
-                href={`#${heading.id}`}
-              >
-                {heading.text}
-              </a>
-            ))}
-          </div>
-        </div>
-      </div>
+        <Localized as="h2" className="article-toc-title" zh={titleZh} en={titleEn} />
+        <ol className="article-toc-list">
+          {headings.map((heading) => {
+            const isActive = activeId === heading.id;
+
+            return (
+              <li key={heading.id} className={`toc-item toc-item-level-${heading.level}`}>
+                <a
+                  aria-current={isActive ? "location" : undefined}
+                  className={`toc-link toc-link-level-${heading.level}${isActive ? " active" : ""}`}
+                  data-active={isActive}
+                  href={`#${heading.id}`}
+                  onClick={(event) => handleTocClick(event, heading.id)}
+                >
+                  {heading.text}
+                </a>
+              </li>
+            );
+          })}
+        </ol>
+      </nav>
     </aside>
   );
 }

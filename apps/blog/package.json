@@ -12,6 +12,7 @@
     "@vercel/analytics": "^2.0.1",
     "@whatsmy/config": "*",
     "@whatsmy/ui": "*",
+    "github-slugger": "^2.0.0",
     "gray-matter": "^4.0.3",
     "katex": "^0.16.11",
     "next": "^16.0.0",

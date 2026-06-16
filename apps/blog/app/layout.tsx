@@ -10,6 +10,7 @@ import "@fontsource/syne/800.css";
 import "@whatsmy/ui/styles.css";
 import "katex/dist/katex.min.css";
 import "./globals.css";
+import "./redesign.css";
 import { dictionaries } from "@whatsmy/config";
 import { AppProviders, LocaleScript, Localized, PageShell, PreferenceRail, SurfaceGrid } from "@whatsmy/ui";
 
@@ -32,10 +33,13 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <PageShell>
             <div className="blog-frame">
               <header className="topbar">
-                <div className="brand-column">
+                <div className="topbar-brand-block">
                   <Link className="wordmark" href="/">
                     what's <mark>my</mark>
                   </Link>
+                  <span className="topbar-edition">blog folio</span>
+                </div>
+                <div className="topbar-rail">
                   <nav className="topbar-nav" aria-label="Primary">
                     <Link href="https://whatsmy.fun">
                       <Localized zh={dictionaries.zh.nav.home} en={dictionaries.en.nav.home} />
@@ -52,7 +56,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                   </nav>
                 </div>
 
-                <PreferenceRail />
+                <div className="topbar-tools">
+                  <PreferenceRail />
+                </div>
               </header>
               {children}
               <footer className="footer-bar">

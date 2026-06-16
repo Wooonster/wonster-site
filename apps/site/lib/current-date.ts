@@ -11,15 +11,11 @@ function getDateParts() {
   return formatter.formatToParts(new Date());
 }
 
-export function getCurrentSiteDateStamp() {
+export function getCurrentSiteDateLabel() {
   const parts = getDateParts();
   const year = parts.find((part) => part.type === "year")?.value ?? "0000";
   const month = parts.find((part) => part.type === "month")?.value ?? "00";
   const day = parts.find((part) => part.type === "day")?.value ?? "00";
 
   return `${year}-${month}-${day}`;
-}
-
-export function getCurrentSiteDateLabel() {
-  return getCurrentSiteDateStamp();
 }

@@ -10,6 +10,7 @@ import "@fontsource/syne/800.css";
 import "@whatsmy/ui/styles.css";
 import "katex/dist/katex.min.css";
 import "./globals.css";
+import "./redesign.css";
 import { AppProviders, LocaleScript, PageShell, SurfaceGrid } from "@whatsmy/ui";
 
 export const revalidate = 3600;

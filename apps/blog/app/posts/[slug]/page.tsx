@@ -57,13 +57,15 @@ export default async function PostPage({ params }: PageProps) {
           <span>{post.readingMinutes} min</span>
           <span>{post.language.toUpperCase()}</span>
         </div>
-        <h1 className="article-title">{post.title}</h1>
+        <div className="article-title-wrap">
+          <h1 className="article-title">{post.title}</h1>
+        </div>
         <div className="article-abstract">
-          <Localized className="article-abstract-label" zh="摘要" en="Abstract" />
+          <Localized className="article-abstract-label" zh="0 · 摘要" en="0 · Abstract" />
           <p className="article-abstract-copy">{post.summary}</p>
         </div>
         <div className="article-keywords">
-          <Localized className="article-keywords-label" zh="关键词" en="Keywords" />
+          <Localized className="article-keywords-label" zh="Tags · 关键词" en="Tags · Keywords" />
           <div className="tag-list article-tag-list">
             {post.tags.map((tag) => (
               <Link key={tag} className="tag article-tag" href={`/tags/${toTagSlug(tag)}`}>
@@ -73,6 +75,14 @@ export default async function PostPage({ params }: PageProps) {
           </div>
         </div>
       </header>
+
+      {post.headings.length ? (
+        <ArticleToc
+          headings={post.headings}
+          titleEn="Contents"
+          titleZh="目录"
+        />
+      ) : null}
 
       <section className="article-layout article-reading-layout">
         <article className="article-main enter-rise delay-2">
@@ -102,16 +112,6 @@ export default async function PostPage({ params }: PageProps) {
             )}
           </nav>
         </article>
-
-        {post.headings.length ? (
-          <ArticleToc
-            captionEn="Scroll aware"
-            captionZh="滑动目录"
-            headings={post.headings}
-            titleEn="On this page"
-            titleZh="本文目录"
-          />
-        ) : null}
       </section>
     </main>
   );

@@ -7,17 +7,17 @@ export default function ArchivePage() {
   const archive = getArchive();
 
   return (
-    <main className="stacked">
-      <section className="hero-panel stacked">
+    <main className="stacked blog-archive-page">
+      <section className="hero-panel stacked blog-ledger-hero">
         <Localized className="eyebrow" zh={dictionaries.zh.blog.archive} en={dictionaries.en.blog.archive} />
         <h1 className="section-title">
           <Localized zh={dictionaries.zh.blog.allPosts} en={dictionaries.en.blog.allPosts} />
         </h1>
       </section>
 
-      <section className="stacked">
+      <section className="stacked blog-archive-ledger">
         {archive.map((entry) => (
-          <div key={entry.year} className="content-panel stacked">
+          <div key={entry.year} className="content-panel stacked blog-archive-year">
             <div className="section-title">{entry.year}</div>
             <div className="archive-list">
               {entry.posts.map((post) => (
@@ -36,4 +36,3 @@ export default function ArchivePage() {
     </main>
   );
 }
-

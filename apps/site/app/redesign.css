@@ -1,0 +1,958 @@
+/* Interlatent-inspired, but site-native: research docket, not replica. */
+:root {
+  --background: #fbfbf6;
+  --background-elevated: #fffffb;
+  --background-strong: #f1f4ed;
+  --foreground: #20251f;
+  --foreground-soft: #646d61;
+  --line: #dfe5da;
+  --line-strong: #aebaa6;
+  --accent: #9a5f55;
+  --accent-strong: #77453f;
+  --accent-secondary: #2f706b;
+  --accent-tertiary: #405f9b;
+  --annotation-amber: #a1722d;
+  --font-display: "Syne", var(--font-site-ui);
+  --docket-width: min(1180px, calc(100vw - 3rem));
+}
+
+[data-theme="dark"] {
+  --background: #151813;
+  --background-elevated: #1c211a;
+  --background-strong: #22281f;
+  --foreground: #eceadf;
+  --foreground-soft: #aeb7aa;
+  --line: #333d31;
+  --line-strong: #586452;
+  --accent: #dc8c7f;
+  --accent-strong: #f1a597;
+  --accent-secondary: #7ed0c3;
+  --accent-tertiary: #96b2eb;
+  --annotation-amber: #d6ac64;
+}
+
+body {
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--line) 34%, transparent) 1px, transparent 1px) left top / clamp(9rem, 14vw, 15rem) 100% no-repeat,
+    var(--background);
+  color: var(--foreground);
+}
+
+.surface-grid {
+  display: none !important;
+}
+
+.page-shell {
+  width: var(--docket-width);
+  padding-top: clamp(1rem, 1.8vw, 1.45rem);
+}
+
+.topbar {
+  align-items: flex-end;
+  gap: clamp(1rem, 3vw, 2rem);
+  padding: 0.8rem 0 0.95rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--line) 76%, transparent);
+  background: transparent;
+}
+
+.topbar::after {
+  content: none !important;
+}
+
+.wordmark {
+  font-family: var(--font-display);
+  font-size: clamp(1.35rem, 1.05rem + 1vw, 1.95rem);
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
+.wordmark mark {
+  padding: 0 0.08em 0.04em;
+  border: 0;
+  border-radius: 0;
+  background: linear-gradient(to top, color-mix(in srgb, var(--accent-secondary) 18%, transparent) 0 44%, transparent 44%) !important;
+  color: color-mix(in srgb, var(--accent-secondary) 78%, var(--foreground)) !important;
+}
+
+.topbar-nav {
+  gap: 0.04rem;
+  color: var(--foreground-soft);
+  font-size: 0.82rem;
+  letter-spacing: 0;
+}
+
+.topbar-nav a {
+  padding-bottom: 0.16rem;
+}
+
+.topbar-nav a + a {
+  border-left-color: color-mix(in srgb, var(--line) 78%, transparent);
+}
+
+.topbar-nav a[data-active="true"],
+.topbar .chip-button[data-active="true"] {
+  color: var(--foreground);
+  box-shadow: inset 0 -1px 0 var(--accent-secondary);
+}
+
+.topbar-tools,
+.topbar .preference-rail {
+  align-items: baseline;
+}
+
+.topbar-tools {
+  gap: 1rem;
+  color: var(--foreground-soft);
+  font-size: 0.84rem;
+}
+
+.topbar-date {
+  display: none;
+}
+
+.topbar .preference-rail {
+  gap: 0.82rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.topbar .chip-button,
+.topbar .chip-button[data-size="compact"] {
+  min-width: 0;
+  min-height: 0;
+  padding: 0 0 0.12rem;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: color-mix(in srgb, var(--foreground) 70%, var(--foreground-soft));
+  font-size: 0.84rem;
+  font-weight: 650;
+  line-height: 1.35;
+}
+
+.site-home {
+  gap: clamp(1.35rem, 2.8vw, 2.75rem);
+  padding-bottom: clamp(3rem, 6vw, 5.5rem);
+}
+
+.home-index-page {
+  grid-template-columns: minmax(0, 710px) minmax(290px, 370px);
+  column-gap: clamp(2.8rem, 7vw, 7rem);
+  row-gap: clamp(1.5rem, 3vw, 2.6rem);
+}
+
+.home-section-featured {
+  grid-column: 1;
+  grid-row: 2;
+}
+
+.home-section-projects {
+  grid-column: 1;
+  grid-row: 3;
+}
+
+.home-section-daily {
+  grid-column: 2;
+  grid-row: 2 / span 2;
+}
+
+.daily-paper-count,
+.index-entry-count,
+.project-count,
+.wiki-entry-num,
+.mono-kicker,
+.paper-queue-range {
+  color: color-mix(in srgb, var(--accent-tertiary) 74%, var(--foreground-soft));
+  font-family: var(--font-code);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.home-section,
+.everyday-paper-archive,
+.wiki-index,
+.wiki-graph-section,
+.wiki-detail-body {
+  position: relative;
+  padding-left: clamp(1rem, 1.6vw, 1.45rem);
+  border-top: 0;
+}
+
+.home-section::before,
+.everyday-paper-archive::before,
+.wiki-index::before,
+.wiki-graph-section::before,
+.wiki-detail-body::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.16rem;
+  bottom: 0.12rem;
+  width: 1px;
+  background: color-mix(in srgb, var(--line-strong) 70%, transparent);
+}
+
+.home-section::after,
+.everyday-paper-archive::after,
+.wiki-index::after,
+.wiki-graph-section::after,
+.wiki-detail-body::after {
+  content: "";
+  position: absolute;
+  left: -0.18rem;
+  top: 0.16rem;
+  width: 0.38rem;
+  height: 0.38rem;
+  border: 1px solid var(--background);
+  background: var(--accent-tertiary);
+}
+
+.home-section-projects::after,
+.wiki-graph-section::after {
+  background: var(--accent-secondary);
+}
+
+.home-section-daily::after,
+.everyday-paper-archive::after {
+  background: var(--annotation-amber);
+}
+
+.home-section-daily {
+  border-left: 0;
+}
+
+.home-section-head,
+.paper-queue-toolbar,
+.wiki-index-head,
+.wiki-graph-header {
+  padding-bottom: 0.35rem;
+  border: 0;
+}
+
+.home-section .section-title,
+.page-intro .display-title,
+.wiki-index-title,
+.wiki-hero-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.22rem, 1rem + 0.8vw, 1.76rem);
+  font-weight: 800;
+  letter-spacing: 0;
+  line-height: 1.06;
+}
+
+.index-more-link,
+.paper-queue-size-button,
+.paper-queue-pager button,
+.wiki-graph-clear,
+.wiki-tag-filter-btn,
+.ghost-link,
+.solid-link {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.index-more-link,
+.paper-queue-size-button,
+.paper-queue-pager button {
+  color: color-mix(in srgb, var(--accent-secondary) 78%, var(--foreground));
+  font-size: 0.84rem;
+  font-weight: 650;
+}
+
+.paper-queue-size-button[data-active="true"],
+.paper-queue-pager button:not(:disabled):hover,
+.wiki-tag-filter-btn[data-active] {
+  box-shadow: inset 0 -1px 0 var(--accent-secondary);
+  color: var(--foreground);
+}
+
+.action-icon,
+.entry-action {
+  width: 1.45rem;
+  height: 1.45rem;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--accent-secondary);
+}
+
+.index-entry,
+.project-row,
+.daily-paper-row,
+.everyday-paper-archive-card,
+.wiki-entry-row,
+.wiki-result-row {
+  border-top: 1px solid color-mix(in srgb, var(--line) 74%, transparent);
+  background: linear-gradient(90deg, color-mix(in srgb, var(--accent-secondary) 0%, transparent), transparent);
+  transition:
+    background 160ms var(--ease-out-quart),
+    transform 160ms var(--ease-out-quart),
+    color 160ms var(--ease-out-quart);
+}
+
+.index-entry:hover,
+.project-row:hover,
+.daily-paper-row:hover,
+.everyday-paper-archive-card:hover,
+.wiki-entry-row:hover,
+.wiki-result-row:hover {
+  background: linear-gradient(90deg, color-mix(in srgb, var(--accent-secondary) 7%, transparent), transparent 72%);
+  transform: translateX(3px);
+}
+
+.index-entry-copy h3,
+.project-row-copy h3,
+.daily-paper-row-copy h3,
+.everyday-paper-archive-card h2,
+.wiki-entry-title,
+.wiki-result-label {
+  color: var(--foreground);
+  font-weight: 720;
+  letter-spacing: 0;
+}
+
+.index-entry-summary,
+.project-description,
+.everyday-paper-archive-card p,
+.wiki-entry-summary,
+.wiki-hero-lead,
+.daily-paper-empty p,
+.everyday-paper-detail-summary,
+.wiki-detail-summary {
+  color: var(--foreground-soft);
+  line-height: 1.74;
+}
+
+.project-type,
+.everyday-paper-source-pill,
+.wiki-entry-tag,
+.wiki-result-tag,
+.wiki-related-chip,
+.issue-stamp {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--line-strong) 64%, transparent);
+  color: color-mix(in srgb, var(--foreground-soft) 88%, var(--foreground));
+  padding: 0 0 0.08rem;
+}
+
+.page-intro,
+.wiki-hero,
+.hero-panel,
+.content-panel,
+.wiki-graph-section {
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.page-intro,
+.wiki-hero {
+  position: relative;
+  padding: clamp(1.25rem, 3vw, 2.3rem) 0 clamp(1.1rem, 2.5vw, 1.8rem) clamp(1rem, 1.6vw, 1.45rem);
+  border: 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
+}
+
+.page-intro::before,
+.wiki-hero::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 1.15rem;
+  bottom: 1.1rem;
+  width: 1px;
+  background: color-mix(in srgb, var(--line-strong) 72%, transparent);
+}
+
+.everyday-paper-display,
+.wiki-hero-title,
+.everyday-paper-detail-title,
+.wiki-detail-title {
+  font-size: clamp(1.85rem, 4vw, 3.35rem);
+  line-height: 1.02;
+}
+
+.paper-queue-toolbar {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 1rem;
+}
+
+.paper-queue-size-row,
+.paper-queue-pager {
+  gap: 0.7rem;
+}
+
+.everyday-paper-archive-list {
+  gap: 0;
+}
+
+.everyday-paper-archive-card {
+  padding: clamp(1rem, 2vw, 1.35rem) 0;
+  border-right: 0;
+  border-bottom: 0;
+  border-left: 0;
+}
+
+.wiki-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: clamp(1.5rem, 4vw, 3rem);
+}
+
+.wiki-hero-rule {
+  display: none;
+}
+
+.wiki-hero-stamp {
+  display: block;
+  align-self: end;
+  color: color-mix(in srgb, var(--accent-secondary) 22%, transparent);
+  font-family: var(--font-display);
+  font-size: clamp(3rem, 10vw, 8rem);
+  font-weight: 800;
+  line-height: 0.8;
+}
+
+.wiki-graph-section {
+  padding-top: 1.1rem;
+}
+
+.wiki-graph-canvas {
+  border: 1px solid color-mix(in srgb, var(--line) 82%, transparent);
+  border-radius: 6px;
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--line) 24%, transparent) 1px, transparent 1px),
+    linear-gradient(color-mix(in srgb, var(--line) 24%, transparent) 1px, transparent 1px),
+    var(--background-elevated);
+  background-size: 48px 48px;
+  box-shadow: none;
+}
+
+.everyday-paper-prose,
+.wiki-prose {
+  color: var(--foreground);
+  font-family: var(--font-site-serif);
+  font-size: 1.04rem;
+  line-height: 1.9;
+}
+
+.everyday-paper-prose h2,
+.everyday-paper-prose h3,
+.wiki-prose h2,
+.wiki-prose h3 {
+  color: var(--foreground);
+  font-family: var(--font-body);
+  letter-spacing: 0;
+}
+
+@media (max-width: 980px) {
+  .home-index-page,
+  .wiki-hero,
+  .paper-queue-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .home-section-featured,
+  .home-section-projects,
+  .home-section-daily {
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  .home-section-daily {
+    padding-left: clamp(1rem, 1.6vw, 1.45rem);
+  }
+}
+
+@media (max-width: 680px) {
+  body {
+    background-image: none;
+  }
+
+  .page-shell {
+    width: min(100vw - 1.25rem, 100%);
+  }
+
+  .topbar {
+    align-items: flex-start;
+  }
+
+  .topbar-tools {
+    flex-direction: column;
+    gap: 0.55rem;
+  }
+
+  .home-section,
+  .everyday-paper-archive,
+  .wiki-index,
+  .wiki-graph-section,
+  .wiki-detail-body,
+  .page-intro,
+  .wiki-hero {
+    padding-left: 0.9rem;
+  }
+
+  .index-entry,
+  .project-row,
+  .daily-paper-row,
+  .wiki-entry-row,
+  .wiki-result-row {
+    grid-template-columns: 1fr;
+  }
+
+  .paper-queue-toolbar,
+  .paper-queue-pager {
+    align-items: start;
+  }
+}
+
+/* Header rebuild: compact publication rail. */
+.topbar {
+  display: grid;
+  grid-template-columns: minmax(10rem, auto) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: clamp(0.85rem, 2.4vw, 2.4rem);
+  padding: 0.78rem 0 0.74rem;
+  border-top: 1px solid color-mix(in srgb, var(--line) 54%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--line) 82%, transparent);
+}
+
+.topbar-brand-block {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.7rem;
+  min-width: 0;
+}
+
+.wordmark {
+  font-size: clamp(1.05rem, 0.92rem + 0.45vw, 1.4rem);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.wordmark mark {
+  padding: 0 0.07em 0.03em;
+  background: linear-gradient(to top, color-mix(in srgb, var(--accent-secondary) 20%, transparent) 0 48%, transparent 48%) !important;
+}
+
+.topbar-edition {
+  position: relative;
+  padding-left: 0.72rem;
+  color: color-mix(in srgb, var(--foreground-soft) 82%, transparent);
+  font-family: var(--font-code);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.topbar-edition::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: -0.08rem;
+  bottom: -0.08rem;
+  width: 1px;
+  background: color-mix(in srgb, var(--line-strong) 54%, transparent);
+}
+
+.topbar-rail {
+  display: flex;
+  justify-content: center;
+  min-width: 0;
+}
+
+.topbar-nav {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  gap: 0.12rem;
+  overflow-x: auto;
+  padding: 0.22rem;
+  border: 1px solid color-mix(in srgb, var(--line) 78%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--background-elevated) 64%, transparent);
+  color: color-mix(in srgb, var(--foreground-soft) 86%, var(--foreground));
+  font-size: 0.76rem;
+  scrollbar-width: none;
+}
+
+.topbar-nav::-webkit-scrollbar {
+  display: none;
+}
+
+.topbar-nav a,
+.topbar-nav a + a {
+  margin: 0;
+  padding: 0.28rem 0.58rem;
+  border: 0;
+  border-radius: 999px;
+  box-shadow: none;
+  white-space: nowrap;
+}
+
+.topbar-nav a:hover {
+  color: var(--foreground);
+  transform: none;
+}
+
+.topbar-nav a[data-active="true"] {
+  background: color-mix(in srgb, var(--accent-secondary) 11%, transparent);
+  color: var(--foreground);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent-secondary) 24%, transparent);
+}
+
+.topbar-tools {
+  justify-self: end;
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  padding: 0.22rem 0.34rem;
+  border: 1px solid color-mix(in srgb, var(--line) 78%, transparent);
+  border-radius: 999px;
+  color: color-mix(in srgb, var(--foreground-soft) 86%, var(--foreground));
+}
+
+.topbar .preference-rail {
+  gap: 0.62rem;
+}
+
+.topbar .chip-button,
+.topbar .chip-button[data-size="compact"] {
+  padding: 0.1rem 0.12rem 0.14rem;
+  font-size: 0.76rem;
+}
+
+.topbar .chip-button[data-active="true"] {
+  box-shadow: inset 0 -1px 0 var(--accent-secondary);
+}
+
+@media (max-width: 920px) {
+  .topbar {
+    grid-template-columns: 1fr;
+    align-items: start;
+    gap: 0.64rem;
+  }
+
+  .topbar-rail {
+    justify-content: flex-start;
+    width: 100%;
+  }
+
+  .topbar-nav {
+    width: 100%;
+  }
+
+  .topbar-tools {
+    justify-self: start;
+    width: 100%;
+    border-radius: 12px;
+    overflow-x: auto;
+  }
+}
+
+@media (max-width: 560px) {
+  .topbar-edition {
+    display: none;
+  }
+
+  .topbar .preference-rail {
+    flex-wrap: wrap;
+  }
+}
+
+/* Pixel navigation pass: bracketed index links plus icon-only controls. */
+.topbar {
+  border-top: 0;
+  --topbar-control-size: 2rem;
+}
+
+.topbar-nav {
+  gap: clamp(0.35rem, 1.2vw, 1.1rem);
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: color-mix(in srgb, var(--foreground-soft) 90%, var(--foreground));
+  font-family: var(--font-code);
+  font-size: clamp(0.72rem, 0.68rem + 0.12vw, 0.82rem);
+  font-weight: 750;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.topbar-nav a,
+.topbar-nav a + a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.26rem;
+  padding: 0.42rem 0.68rem;
+  border: 1px solid transparent;
+  border-radius: 0;
+  color: inherit;
+  line-height: 1;
+  text-rendering: geometricPrecision;
+}
+
+.topbar-nav a::before {
+  content: "[";
+  margin-right: 0.46rem;
+  color: color-mix(in srgb, currentColor 70%, transparent);
+}
+
+.topbar-nav a::after {
+  content: "]";
+  margin-left: 0.46rem;
+  color: color-mix(in srgb, currentColor 70%, transparent);
+}
+
+.topbar-nav a:hover {
+  color: var(--foreground);
+  background: color-mix(in srgb, var(--foreground) 4%, transparent);
+}
+
+.topbar-nav a[data-active="true"] {
+  border-color: var(--foreground);
+  background: var(--foreground);
+  color: var(--background);
+  box-shadow:
+    3px 3px 0 color-mix(in srgb, var(--line-strong) 68%, transparent),
+    inset -2px -2px 0 color-mix(in srgb, var(--background) 10%, transparent);
+}
+
+.topbar-nav a[data-active="true"]::before,
+.topbar-nav a[data-active="true"]::after {
+  color: color-mix(in srgb, var(--background) 86%, transparent);
+}
+
+.topbar-tools {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.topbar .topbar-date + .preference-rail::before {
+  content: none;
+  display: none;
+}
+
+.topbar .preference-rail {
+  gap: 0.52rem;
+}
+
+.topbar .preference-rail {
+  align-items: center;
+}
+
+.topbar .chip-button,
+.topbar .chip-button[data-size="compact"] {
+  box-sizing: border-box;
+  flex: 0 0 var(--topbar-control-size);
+  display: inline-grid;
+  place-items: center;
+  width: var(--topbar-control-size);
+  height: var(--topbar-control-size);
+  min-width: var(--topbar-control-size);
+  min-height: var(--topbar-control-size);
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--line-strong) 66%, transparent);
+  background: color-mix(in srgb, var(--background-elevated) 78%, transparent);
+  box-shadow: none;
+  color: color-mix(in srgb, var(--foreground-soft) 84%, var(--foreground));
+  line-height: 1;
+}
+
+.topbar .chip-button::after {
+  content: none;
+  display: none;
+}
+
+.topbar .chip-button:hover {
+  border-color: color-mix(in srgb, var(--foreground) 28%, var(--line-strong));
+  color: var(--foreground);
+}
+
+.topbar .chip-button[data-active="true"] {
+  border-color: var(--foreground);
+  background: var(--foreground);
+  color: var(--background);
+  box-shadow:
+    inset -2px -2px 0 color-mix(in srgb, var(--background) 12%, transparent),
+    inset 0 0 0 1px var(--foreground);
+}
+
+.toggle-icon {
+  display: block;
+  width: 1rem;
+  height: 1rem;
+}
+
+.toggle-icon-language {
+  display: grid;
+  place-items: center;
+  font-family: var(--font-code);
+  font-size: 0.82rem;
+  font-weight: 850;
+  line-height: 1;
+}
+
+@media (max-width: 920px) {
+  .topbar-nav {
+    justify-content: flex-start;
+    gap: 0.3rem;
+  }
+
+  .topbar-nav a,
+  .topbar-nav a + a {
+    padding-inline: 0.58rem;
+  }
+
+  .topbar-tools {
+    width: auto;
+    overflow: visible;
+  }
+}
+
+@media (max-width: 560px) {
+  .topbar {
+    --topbar-control-size: 1.86rem;
+  }
+
+  .topbar .preference-rail {
+    flex-wrap: nowrap;
+  }
+}
+
+/* Header stack refinement: keep the bracket rail directly under the logo. */
+.topbar {
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "brand tools"
+    "nav tools";
+  align-items: start;
+  column-gap: clamp(1.2rem, 4vw, 3.2rem);
+  row-gap: 0.58rem;
+  padding: clamp(0.78rem, 1.2vw, 1.05rem) 0 clamp(0.82rem, 1.4vw, 1.1rem);
+}
+
+.topbar-brand-block {
+  grid-area: brand;
+  justify-self: start;
+}
+
+.topbar-rail {
+  grid-area: nav;
+  justify-content: flex-start;
+  width: min(100%, 46rem);
+}
+
+.topbar-nav {
+  justify-content: flex-start;
+  gap: clamp(0.28rem, 0.9vw, 0.82rem);
+  width: 100%;
+  font-size: clamp(0.68rem, 0.66rem + 0.08vw, 0.76rem);
+}
+
+.topbar-nav a,
+.topbar-nav a + a {
+  min-height: 2rem;
+  padding: 0.34rem 0.56rem;
+}
+
+.topbar-nav a::before {
+  margin-right: 0.38rem;
+}
+
+.topbar-nav a::after {
+  margin-left: 0.38rem;
+}
+
+.topbar-tools {
+  grid-area: tools;
+  align-self: start;
+  padding-top: 0.06rem;
+}
+
+@media (max-width: 920px) {
+  .topbar {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "brand"
+      "nav"
+      "tools";
+    row-gap: 0.6rem;
+  }
+
+  .topbar-rail {
+    width: 100%;
+  }
+
+  .topbar-nav {
+    gap: 0.24rem;
+    max-width: 100%;
+  }
+
+  .topbar-tools {
+    justify-self: start;
+    padding-top: 0;
+  }
+}
+
+@media (max-width: 560px) {
+  .topbar {
+    row-gap: 0.54rem;
+  }
+
+  .topbar-brand-block {
+    gap: 0.5rem;
+  }
+
+  .wordmark {
+    font-size: clamp(1.04rem, 5vw, 1.28rem);
+  }
+
+  .topbar-nav {
+    gap: 0.16rem;
+    font-size: 0.66rem;
+  }
+
+  .topbar-nav a,
+  .topbar-nav a + a {
+    min-height: 1.92rem;
+    padding-inline: 0.46rem;
+  }
+
+  .topbar .chip-button,
+  .topbar .chip-button[data-size="compact"] {
+    width: var(--topbar-control-size);
+    height: var(--topbar-control-size);
+    min-width: var(--topbar-control-size);
+    min-height: var(--topbar-control-size);
+  }
+}
+
+/* Final control simplification: one language toggle, one theme toggle. */
+.topbar .preference-rail-cycle {
+  gap: 0.46rem;
+}
+
+.topbar .preference-cycle-button,
+.topbar .preference-cycle-button[data-size="compact"] {
+  width: var(--topbar-control-size);
+  height: var(--topbar-control-size);
+  min-width: var(--topbar-control-size);
+  min-height: var(--topbar-control-size);
+}

@@ -20,11 +20,11 @@ export default async function TagPage({ params }: PageProps) {
   const posts = getPostsByTag(decodedTag);
 
   return (
-    <main className="stacked">
+    <main className="stacked blog-tag-page">
       <Link className="ghost-link" href="/">
         <Localized zh={dictionaries.zh.blog.backToHome} en={dictionaries.en.blog.backToHome} />
       </Link>
-      <section className="hero-panel stacked">
+      <section className="hero-panel stacked blog-ledger-hero">
         <Localized className="eyebrow" zh={dictionaries.zh.blog.filterBy} en={dictionaries.en.blog.filterBy} />
         <h1 className="section-title">#{decodedTag}</h1>
         <p className="kicker">
@@ -34,7 +34,7 @@ export default async function TagPage({ params }: PageProps) {
 
       <section className="post-list">
         {posts.length > 0 ? (
-          posts.map((post) => <PostCard key={post.slug} post={post} />)
+          posts.map((post, index) => <PostCard key={post.slug} post={post} index={index} />)
         ) : (
           <div className="content-panel">
             <Localized zh={dictionaries.zh.blog.noPosts} en={dictionaries.en.blog.noPosts} />

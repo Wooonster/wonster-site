@@ -8,6 +8,7 @@ import {
   useMemo,
   useState
 } from "react";
+import Script from "next/script";
 import { ThemeProvider as NextThemeProvider, useTheme } from "next-themes";
 import type { LocalePreference, ThemePreference } from "@whatsmy/config";
 
@@ -134,7 +135,7 @@ export function LocaleScript() {
     })();
   `;
 
-  return <script dangerouslySetInnerHTML={{ __html: script }} />;
+  return <Script id="whatsmy-preferences" strategy="beforeInteractive" dangerouslySetInnerHTML={{ __html: script }} />;
 }
 
 function ThemePreferenceSync() {

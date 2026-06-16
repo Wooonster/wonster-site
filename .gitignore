@@ -1,8 +1,19 @@
+# Dependencies
 node_modules
+
+# Framework and deployment output
 .next
 .vercel
 dist
 coverage
+
+# Local verification artifacts
+.playwright-cli
+output
+outputs
+vercel_deploy.md
+
+# System and logs
 .DS_Store
 *.log
 npm-debug.log*
