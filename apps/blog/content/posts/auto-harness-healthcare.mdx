@@ -1,0 +1,657 @@
+---
+title: "从「挽具」到自进化：Auto-Harness 与医疗智能体"
+date: 2026-07-07
+summary: 系统梳理 Harness 的概念谱系、Auto-Harness 的自动化实现路径，并聚焦它在医疗智能体中的落地：安全护栏、患者记忆、工具调度与闭环自进化。
+tags:
+  - Harness
+  - Auto-Harness
+  - Agentic AI
+  - Healthcare AI
+draft: false
+featured: true
+language: zh
+readingMinutes: "25"
+---
+
+<div className="note lead-note">
+<div className="tag">导读 · TL;DR</div>
+<div className="hpara">
+        Harness 是 LLM 智能体的「运行时挽具」——决定信息何时存取、工具如何调用、行为如何被约束。学界先用四个必要条件（循环 / 工具 / 上下文 / 控制）把它定义清楚，再把「设计 Harness」本身变成一个可被搜索、可自动演化的工程问题（Auto-Harness）。在医疗领域，由于<strong>容错空间极低、幻觉后果严重、监管要求严苛</strong>，Harness 从「外壳」升级为「底座」：它统一了训练与部署环境、承载安全护栏、管理患者长期记忆，并通过闭环反馈实现自我进化。厘清这条从概念到临床的链路，正是当前医疗 AI 工程化落地的核心议题。
+      </div>
+</div>
+<div className="hpara">
+      可信度标注沿用研读笔记的约定：
+      <span className="ep paper">paper</span> 直接来自论文 ·
+      <span className="ep inf">inferred</span> 合理推断 ·
+      <span className="ep ext">external</span> 外部背景知识。
+    </div>
+
+<section id="s1">
+<span className="sec-num">SECTION 01</span>
+<h2 id="什么是-harness智能体的挽具">什么是 Harness：智能体的「挽具」</h2>
+<div className="hpara">
+        在生成式 AI 工程里，<strong>Harness（护具 / 挽具 / 脚手架）</strong>这个词一度被用得很乱：有人用它指代整个产品（如 Claude Code），有人用它指代评测脚本（如 SWE-bench harness）。论文《What makes a harness a harness》<a className="cit" href="#ref-1">1</a> 专门为它正本清源——要定义一个术语，先要追溯它的<em>隐喻一致性</em>。<span className="ep paper">paper</span>
+</div>
+<div className="hpara">
+        这个词源自 12 世纪古法语 <code>harneis</code>（战争装备），14 世纪后转指「马具」：把役畜连接到车辆上的带子。它的核心隐喻非常贴切——
+      </div>
+<div className="diagram">
+<div className="dtitle">挽具隐喻：力量 + 导向 = 有效工作</div>
+<div className="flow">
+<div className="fc-node a"><b>马（Model）</b><span>拥有 brute force 蛮力，但缺乏方向，可能乱跑</span></div>
+<div className="fc-arrow">+</div>
+<div className="fc-node g"><b>挽具（Harness）</b><span>把力量安全、高效地引导到正确方向上</span></div>
+<div className="fc-arrow">=</div>
+<div className="fc-node b"><b>拉动车（Task）</b><span>完成任务，且过程可控、可审计</span></div>
+</div>
+<div className="dcap">在 AI 语境里：模型是有蛮力但缺方向的「马」，任务是「车」，而 Harness 是确保力量被安全引导的工程层。它历经「软件测试护具 → ML 评估护具 → Agent 运行时护具」的演变，关键转变在于<strong>从「事后评估」走向「运行时介入」</strong>。<span className="ep paper">paper</span></div>
+</div>
+<h3 id="11-四个必要且充分条件t1t4">1.1 四个必要且充分条件（T1–T4）</h3>
+<div className="hpara">
+        论文给出了判定一个系统是否为 Agent Harness 的四项测试，<strong>必须全部满足</strong>才算数。这把模糊的「改文字」变成了明确的工程清单：
+      </div>
+<div className="stack">
+<div className="layer l1"><div className="lname">T1 · Loop</div><div className="ldesc">运行时维护「推理 → 动作 → 观察」的循环。没有循环，它只是一次性的生成器。</div></div>
+<div className="layer l2"><div className="lname">T2 · Tools</div><div className="ldesc">提供让模型<strong>感知并修改</strong>外部环境的工具接口（读写文件、执行命令）。只能读不能改，则不满足。</div></div>
+<div className="layer l3"><div className="lname">T3 · Context</div><div className="ldesc">主动决定哪些信息进入 / 离开上下文窗口（RAG、压缩）。简单的「满溢截断」不算，必须是任务相关的筛选。</div></div>
+<div className="layer l1"><div className="lname">T4 · Control</div><div className="ldesc">包含<strong>独立于模型意愿</strong>的控制机制（沙箱、Token 配额、确定性校验）。这是把 Harness 与普通 Prompt 包装层区分开的核心。</div></div>
+</div>
+<div className="hpara">用这把「手术刀」去切，常见系统的归类立刻清晰：</div>
+<div className="table-wrap">
+<table>
+<thead><tr><th>系统</th><th>T1 循环</th><th>T2 工具</th><th>T3 上下文</th><th>T4 控制</th><th>判定</th></tr></thead>
+<tbody>
+<tr><td>Claude Code / Aider / OpenHands</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td><strong>Agent Harness</strong></td></tr>
+<tr><td>SWE-bench</td><td className="down">✗</td><td>✓</td><td>✗</td><td>✗</td><td>Eval Harness（仅事后打分）</td></tr>
+<tr><td>代码自动补全（Autocomplete）</td><td className="down">✗</td><td className="down">✗</td><td>✗</td><td>✗</td><td>IDE Plugin（被排除）</td></tr>
+</tbody>
+</table>
+</div>
+<div className="hpara">数据来源：《What makes a harness a harness》案例判定表。<span className="ep paper">paper</span></div>
+<div className="note">
+<div className="tag">核心论断</div>
+<div className="hpara">作者强调：<strong>术语的清晰化是累积性科学的前提</strong>。我们不能把太多东西都笼统地称为 Harness。把 Harness 作为一个独立的工程单元界定出来，才能公平比较不同系统的设计优劣——这也是后续一切「自动化 Harness」研究的逻辑起点。<span className="ep paper">paper</span></div>
+</div>
+</section>
+
+<section id="s2">
+<span className="sec-num">SECTION 02</span>
+<h2 id="从-harness-到-auto-harness为何要自动化">从 Harness 到 Auto-Harness：为何要自动化</h2>
+<h3 id="21-harness-究竟有多关键">2.1 Harness 究竟有多关键？</h3>
+<div className="hpara">
+        如果 Harness 只是无足轻重的「外壳」，自动化它就没意义。但多项研究给出了反直觉的实证：<strong>在模型不变的前提下，仅仅改 Harness 就能带来巨大的性能差距</strong>。
+      </div>
+<div className="grid2">
+<div className="mini">
+<h4>同一基准，6× 差距</h4>
+<div className="hpara">Meta-Harness<a className="cit" href="#ref-3">3</a> 指出：在同一基准上，<strong>只改 harness</strong> 就能造成约 <strong>6×</strong> 的性能差距——这意味着 harness 的重要性不亚于模型权重本身。<span className="ep paper">paper</span></div>
+</div>
+<div className="mini">
+<h4>78% 失败源于「非法动作」</h4>
+<div className="hpara">AutoHarness<a className="cit" href="#ref-2">2</a> 的切入点：在 Kaggle GameArena 国际象棋竞赛中，<strong>78% 的 Gemini-2.5-Flash 对局失败源于非法走子</strong>，而非棋力不足。这是一个工程问题，不是模型问题。<span className="ep paper">paper</span></div>
+</div>
+</div>
+<div className="hpara">
+        于是研究者的思维框架发生转移：从「<em>如何让模型更聪明</em>」转向「<em>如何为模型设计更好的执行环境</em>」。这就催生了一个新的研究子方向——<strong>Harness 工程学（Harness Engineering）</strong>，以及它的自动化形态 <strong>Auto-Harness</strong>。
+      </div>
+<h3 id="22-自动化-harness-难在哪三大挑战">2.2 自动化 Harness 难在哪？三大挑战</h3>
+<div className="hpara">
+        AHE（Agentic Harness Engineering）<a className="cit" href="#ref-4">4</a> 一文精准概括了「为什么 harness 设计至今仍高度依赖人工、缺乏系统化方法」：<span className="ep paper">paper</span>
+</div>
+<div className="cols4 three-up">
+<div className="col">
+<div className="ct">① 异构动作空间</div>
+<ul>
+<li>可编辑组件性质迥异</li>
+<li>提示词 / 工具实现</li>
+<li>中间件 / 长期记忆</li>
+<li>难在统一空间里协同优化</li>
+</ul>
+</div>
+<div className="col">
+<div className="ct">② 海量轨迹埋没信号</div>
+<ul>
+<li>单任务轨迹动辄数百万 token</li>
+<li>关键失败根因被淹没</li>
+<li>诊断信息可达 10⁷ token / 次</li>
+<li>压缩反馈会丢因果链</li>
+</ul>
+</div>
+<div className="col">
+<div className="ct">③ 编辑效果难归因</div>
+<ul>
+<li>组件间高度耦合</li>
+<li>提升 / 下降说不清是谁的功劳</li>
+<li>容易陷入盲目试错</li>
+<li>甚至导致性能崩溃</li>
+</ul>
+</div>
+</div>
+<h3 id="23-范式转变从参数化直觉到外置的显式推理层">2.3 范式转变：从「参数化直觉」到「外置的显式推理层」</h3>
+<div className="hpara">
+        Auto-Harness 的深层意义，是把智能体的部分「智能」从模型参数里释放出来，转移到<strong>可演进、可审计的代码脚手架</strong>中。这带来几个范式层面的判断：<span className="ep inf">inferred</span>
+</div>
+<ul className="clean">
+<li><strong>外置的显式推理层</strong>：Kahneman 的「快思考 / 慢思考」框架中，LLM 的参数直觉近似于快速、模式匹配式的 System 1；而验证、约束、纠错等逻辑判断——即 System 2——被 Auto-Harness 以透明代码的形式搬到模型外部，使其可观测、可调试、可版本控制。</li>
+<li><strong>大模型驱动的符号合成</strong>：传统 Neuro-Symbolic AI（神经网络 + 人工规则）的瓶颈在于规则须由人类手写，难以扩展；Auto-Harness 让 LLM 本身充当「规则编写者」，以可执行代码为介质自动生成符号约束，绕开了人工规则的扩展壁垒。</li>
+<li><strong>脚手架中心化评价</strong>：未来评估的对象不再是「哪个模型更强」，而是「模型 + 环境脚手架」的综合体。《Stop Comparing LLM Agents Without Disclosing the Harness》对此有明确论证：在不披露 harness 配置的前提下对比不同 LLM agent，结论在方法论上是无效的——harness 造成的性能差距完全可能掩盖模型真实能力的差异。<span className="ep ext">external</span></li>
+</ul>
+<div className="note green">
+<div className="tag">一句话</div>
+<div className="hpara">Auto-Harness 把 LLM 从一个「容易产生幻觉的博学者」，转变为一个「能够制造精密工具的工匠」——与其强迫模型记住所有规则，不如让它<strong>写出一套能遵守规则的代码</strong>，把可靠性的保证从参数空间转移到可审计的执行层。<span className="ep inf">inferred</span></div>
+</div>
+</section>
+
+<section id="s3">
+<span className="sec-num">SECTION 03</span>
+<h2 id="auto-harness-的实现路径">Auto-Harness 的实现路径</h2>
+<div className="hpara">
+        虽然各家方法名字不同，但「自动化设计 Harness」在结构上可统一为一个闭环：<strong>提议 → 评估 → 诊断 → 精炼</strong>。差异主要在三处——搜索<em>对象</em>是什么、给 proposer 看<em>什么反馈</em>、以及如何<em>保证演进不退步</em>。
+      </div>
+<div className="diagram">
+<div className="dtitle">Auto-Harness 的通用闭环</div>
+<div className="flow">
+<div className="fc-node a"><b>① Propose 提议</b><span>proposer（通常是 coding agent）生成新的 harness 代码版本</span></div>
+<div className="fc-arrow">→</div>
+<div className="fc-node g"><b>② Evaluate 评估</b><span>在任务集上 rollout，记录分数、轨迹、错误信息</span></div>
+<div className="fc-arrow">→</div>
+<div className="fc-node b"><b>③ Diagnose 诊断</b><span>分析失败根因，蒸馏成可操作的证据</span></div>
+<div className="fc-arrow">→</div>
+<div className="fc-node a"><b>④ Refine 精炼</b><span>有针对性地改组件，必要时回滚无效改动</span></div>
+</div>
+<div className="fc-loop">↺ 每轮迭代写回历史库（population / archive），供下一轮诊断与提议复用</div>
+</div>
+<h3 id="31-基石adas--把智能体设计放进代码空间">3.1 基石：ADAS —— 把智能体设计放进「代码空间」</h3>
+<div className="hpara">
+        ADAS（Automated Design of Agentic Systems，ICLR 2025）<a className="cit" href="#ref-6">6</a> 奠定了思想基础：把「自动设计智能体」形式化为
+        <strong>搜索空间 × 搜索算法 × 评估函数</strong>三元组，并论证<strong>代码空间是最优搜索空间</strong>——因为它图灵完备（理论全覆盖）、能复用现成开源工具、且天然契合 LLM 的编程先验。其算法 Meta Agent Search 让一个「元智能体」基于不断增长的存档（archive）阶梯式地编写越来越好的智能体代码。<span className="ep paper">paper</span>
+</div>
+<div className="hpara">用形式化语言表达，Auto-Harness 求解的是：<strong>在固定模型权重 $M$ 的前提下，找到能最大化所有任务实例上期望奖励的最优 Harness $H^\*$。</strong><span className="ep paper">paper</span></div>
+<div className="eq">
+<div className="lbl">在固定模型权重下，最大化期望任务奖励的 Harness 搜索问题</div>
+
+$$
+H^* = \arg\max_{H \in \mathcal{H}}\;
+\mathbb{E}_{x \sim \mathcal{X},\; \tau \sim p^M(H, x)}
+\; r(\tau, x)
+$$
+
+</div>
+<div className="hpara">
+        其中 $H \in \mathcal{H}$ 是搜索空间中的候选 harness 程序；$M$ 是<strong>冻结不变</strong>的基础模型；$x \sim \mathcal{X}$ 是从任务分布中采样的实例；$\tau \sim p^M(H, x)$ 是模型在 harness $H$ 下运行任务 $x$ 所产生的轨迹；$r(\tau, x)$ 是轨迹级任务奖励。被优化的唯一变量是 $H$——这正是 Auto-Harness 与参数微调路线的本质区别：无需修改模型权重，只改外部执行框架。<span className="ep paper">paper</span>
+</div>
+<h3 id="32-四种代表性实现">3.2 四种代表性实现</h3>
+<div className="hpara">它们沿着 ADAS 的思路，各自攻克了闭环自动化中的一个核心难题：</div>
+<div className="grid2">
+<div className="mini">
+<h4>AutoHarness<a className="cit" href="#ref-2">2</a>（Google DeepMind）</h4>
+<div className="hpara"><strong>核心问题</strong>：LLM 产生非法动作的根源不在「棋力」，而在缺乏对规则的确定性执行——Kaggle 国际象棋竞赛中 78% 的 Gemini-2.5-Flash 失局源于非法走子。<span className="ep paper">paper</span></div>
+<div className="hpara"><strong>方法</strong>：以 Thompson 采样引导的树搜索，迭代合成可执行代码 harness。每轮循环中，Critic 模块从环境错误信息与奖励中提炼诊断摘要，Refiner 依此生成改进的代码候选，再按采样概率选取下一个待精炼节点。定义三级接入强度：</div>
+<ul className="clean">
+<li><b>action-filter</b>：代码生成合法动作集，LLM 从中排序选优，保留模型推理能力</li>
+<li><b>action-verifier</b>（主变体）：LLM 自由提议，代码验证合法性；非法则附带警告信息重提</li>
+<li><b>action-policy</b>：代码彻底取代 LLM 决策，推理阶段零模型调用，仅执行 Python</li>
+</ul>
+<div className="hpara"><strong>结果</strong>：145 款游戏全部达到 <strong>100% 合法动作率</strong>；verifier 平均 14.5 次迭代收敛，Flash 小模型借此击败 GPT 大模型。<span className="ep paper">paper</span></div>
+</div>
+<div className="mini">
+<h4>Meta-Harness<a className="cit" href="#ref-3">3</a>（Stanford / MIT）</h4>
+<div className="hpara"><strong>核心问题</strong>：harness 的影响是长链路的——一次早期的记忆写入或检索策略决定，可能在数十步后才反映到最终输出。已有方法把历史压缩成分数或摘要（反馈量 10²–10⁴ tokens），而完整的 harness 诊断信息可达 <strong>10⁷ tokens</strong>，三个量级的丢失让根因追踪几乎不可能。<span className="ep paper">paper</span></div>
+<div className="hpara"><strong>方法</strong>：让 coding agent（Claude Code Opus-4.6）通过 filesystem 接口，用 <code>grep</code> / <code>cat</code> / <code>diff</code> 按需查阅所有历史候选的完整源码、执行轨迹与评分——不把历史一股脑塞进 prompt，而是让 agent 主动决定看什么、怎么形成因果假设。维护 population H 中所有已评估候选，无父节点约束（proposer 可参考任意历史节点），返回准确率-上下文成本的 <strong>Pareto frontier</strong>。</div>
+<div className="hpara"><strong>关键消融</strong>：scores-only 34.6 → +summary 34.9（摘要几乎无益）→ <strong>+raw traces 50.0</strong>（median），OOD 泛化 73.1% vs 基线 70.2%，且上下文成本更低。<span className="ep paper">paper</span></div>
+</div>
+<div className="mini">
+<h4>AHE（复旦 / 北大）</h4>
+<div className="hpara"><strong>核心问题</strong>：harness 的组件高度耦合——提示词、工具实现、中间件、记忆调度器等同时存在，一次编辑的效果归因极难，盲目试错甚至会导致性能崩溃（消融中仅改提示词的变体下降 −2.3 pp）。<span className="ep paper">paper</span></div>
+<div className="hpara"><strong>方法</strong>：引入<strong>三层可观测性</strong>，把每次编辑变成一份可事后核查的「可验证合同」：</div>
+<ol>
+<li><strong>组件可观测</strong>：将 harness 拆解为 7 类解耦文件（提示词、工具实现、中间件、记忆策略、调度器、验证器、配置），每类独立版本化</li>
+<li><strong>经验可观测</strong>：Agent Debugger 从原始失败轨迹中蒸馏出结构化根因摘要，避免 10⁷ token 轨迹淹没诊断信号</li>
+<li><strong>决策可观测</strong>：编辑前，coding agent 须写出 <em>Change Manifest</em>——声明「我修复了什么 / 可能破坏什么」；框架在编辑后自动核对并在预期不符时触发 <strong>Git 回滚</strong></li>
+</ol>
+<div className="hpara"><strong>结果</strong>：Terminal-Bench 2 Pass@1 69.7%→<strong>77.0%</strong>；Change Manifest 机制有效遏制了级联式性能回退。<span className="ep paper">paper</span></div>
+</div>
+<div className="mini">
+<h4>Self-Harness<a className="cit" href="#ref-5">5</a>（上海 AI Lab）</h4>
+<div className="hpara"><strong>核心问题</strong>：AutoHarness、Meta-Harness、AHE 都隐含依赖「有更强外部模型可用于提议或评估」，但对于前沿模型而言，这个假设不成立——没有更强的同类可供参照。<span className="ep paper">paper</span></div>
+<div className="hpara"><strong>方法</strong>：纯粹的自我闭环，三阶段严格执行：</div>
+<ol>
+<li><strong>弱点挖掘</strong>：系统性分析历史失败案例，提炼「失败特征签名」——描述哪类输入 / 任务结构会持续触发错误</li>
+<li><strong>有界极简提议</strong>：针对签名生成最小化 harness 修改（不做大重写），降低引入新缺陷的风险</li>
+<li><strong>严格双重回归门</strong>：修改只有同时满足「held-in 集上性能提升」且「held-out 集上不退步」才会合并；两条件缺一则丢弃</li>
+</ol>
+<div className="hpara"><strong>结果</strong>：在多个开源模型上 Pass 率提升 <strong>14–21 个百分点</strong>，无需任何外部更强模型介入。<span className="ep paper">paper</span></div>
+</div>
+</div>
+<div className="table-wrap">
+<table>
+<thead><tr><th>系统</th><th>机构</th><th>搜索对象</th><th>反馈信号</th><th>保证不退步的机制</th></tr></thead>
+<tbody>
+<tr><td><strong>ADAS</strong></td><td>UBC / Vector</td><td>代码空间（图灵完备）</td><td>验证集分数</td><td>存档阶梯 + 自我反思 / 调试</td></tr>
+<tr><td><strong>AutoHarness</strong></td><td>Google DeepMind</td><td>可执行 code harness</td><td>环境错误 + 奖励</td><td>Thompson 采样树搜索</td></tr>
+<tr><td><strong>Meta-Harness</strong></td><td>Stanford / MIT</td><td>harness 程序</td><td>完整 trace+code+score</td><td>Pareto frontier 多目标保留</td></tr>
+<tr><td><strong>AHE</strong></td><td>复旦 / 北大</td><td>7 类解耦组件</td><td>三层可观测性报告</td><td>Change Manifest + Git 回滚</td></tr>
+<tr><td><strong>Self-Harness</strong></td><td>上海 AI Lab</td><td>harness 配置面</td><td>失败特征签名</td><td>held-in/out 双重回归门槛</td></tr>
+</tbody>
+</table>
+</div>
+<div className="note blue">
+<div className="tag">一条共识</div>
+<div className="hpara">这些工作不约而同地发现：把改进<strong>固化在「工具 / 中间件 / 记忆」等硬逻辑里，比写在「提示词」这种软约束里更有效、更可迁移</strong>。AHE 的消融甚至显示「仅改提示词」会让性能倒退（−2.3 pp）。这一点对医疗场景尤其重要——安全规则必须是「写出来的逻辑」，而非「求出来的概率」。<span className="ep paper">paper</span></div>
+</div>
+</section>
+
+<section id="s4">
+<span className="sec-num">SECTION 04</span>
+<h2 id="走进医疗为什么医疗最需要-harness">走进医疗：为什么医疗最需要 Harness</h2>
+<div className="hpara">
+        医疗 LLM 的演进可清晰地分为三代。我们正处在从第二代向第三代跃迁的关口，而 Harness 正是这次跃迁的核心载体。
+      </div>
+<div className="diagram">
+<div className="dtitle">医疗 LLM 的三代演进</div>
+<div className="flow">
+<div className="fc-node"><b>第一代 · 静态 QA</b><span>USMLE / MedQA 知识问答<br />无交互、无记忆、无工具</span></div>
+<div className="fc-arrow">→</div>
+<div className="fc-node b"><b>第二代 · 多轮对话</b><span>问诊对话、病史采集<br />单会话有效，跨会话失忆</span></div>
+<div className="fc-arrow">→</div>
+<div className="fc-node g"><b>第三代 · Agent System</b><span>记忆 + 工具 + 多 Agent + 闭环 RL<br />复杂度高，但贴近真实临床</span></div>
+</div>
+<div className="dcap">综述《LLM-based Agents in Medicine》<a className="cit" href="#ref-8">8</a> 梳理了 60 篇工作，指出标准 LLM 与 LLM Agent 的本质区别：后者需要<strong>感知环境、调用工具、规划任务并动态适应</strong>——而这些能力恰恰由 Harness 承载。<span className="ep paper">paper</span></div>
+</div>
+<h3 id="41-医疗对-harness-的刚需来自四个特殊性">4.1 医疗对 Harness 的「刚需」来自四个特殊性</h3>
+<div className="hpara">
+        通用领域里 Harness 是「锦上添花」，但在医疗里它是「不可或缺」。原因在于医疗场景的四个特殊约束：
+      </div>
+<div className="cols4">
+<div className="col">
+<div className="ct">容错空间极低</div>
+<ul><li>失误直接关系患者安全</li><li>「快速但不安全」比「慢但准确」更危险</li><li>需要确定性的安全护栏</li></ul>
+</div>
+<div className="col">
+<div className="ct">幻觉后果严重</div>
+<ul><li>错误诊断 / 用药会级联传播</li><li>需把证据检索锚定到可信来源</li><li>需可溯源、可审计</li></ul>
+</div>
+<div className="col">
+<div className="ct">连续照护需求</div>
+<ul><li>初诊→复诊→慢病管理闭环</li><li>需跨数天数周的长期记忆</li><li>需追踪病情演化</li></ul>
+</div>
+<div className="col">
+<div className="ct">合规与隐私</div>
+<ul><li>HIPAA / GDPR 严格要求</li><li>决策过程须可审计</li><li>需最小化隐私暴露</li></ul>
+</div>
+</div>
+<div className="note">
+<div className="tag">关键转变</div>
+<div className="hpara">正是这些约束，让 Harness 在医疗系统里完成了<strong>从「外壳」到「底座」的角色转变</strong>：它不再是可有可无的封装，而是承载安全、记忆、工具调度与训练-部署一致性的「操作系统」。下一节我们以 <strong>Baichuan-M4</strong> 这一最完整的医疗专用 Harness 实现为主轴，看它具体怎么做。<span className="ep inf">inferred</span></div>
+</div>
+</section>
+
+<section id="s5">
+<span className="sec-num">SECTION 05 · 重点</span>
+<h2 id="医疗-harness-的代表系统baichuan-m4-深读">医疗 Harness 的代表系统：Baichuan-M4 深读</h2>
+<div className="hpara">
+        Baichuan-M4<a className="cit" href="#ref-7">7</a>（《A Clinical-Grade Medical Agent System for Continuous Care》，百川智能 × 清华）是目前少有的、把<strong>完整智能体系统</strong>而非单一模型作为研究对象的医疗 AI 工作。它要解决的核心问题是：现有医疗 LLM 大多停留在<strong>单轮问答</strong>，无法满足「初诊→复诊→慢病管理→用药反馈」这一真实临床闭环所需的<strong>连续照护（continuous care）</strong>能力。<span className="ep paper">paper</span>
+</div>
+<div className="hpara">它的目标可以形式化为：在给定患者历史状态 $H_t$、当前输入 $x_t$（文本 / 图像 / 工具输出）下，最大化跨多轮轨迹的期望累积临床质量奖励，同时约束幻觉率并满足安全边界。<span className="ep inf">inferred</span></div>
+<div className="eq">
+<div className="lbl">连续照护优化目标（示意）</div>
+
+$$
+\max\; \mathbb{E}\!\left[\sum_t r_t^{\mathrm{clinical}}\right]
+\quad
+\mathrm{s.t.}\;
+\text{幻觉率} \le \epsilon,\;
+\text{满足安全护栏}
+$$
+
+</div>
+<h3 id="51-harness--model--tool铁三角">5.1 「Harness + Model + Tool」铁三角</h3>
+<div className="hpara">整个系统由三个支柱构成，而 <strong>Baichuan-Harness 是把三者黏合起来的统一运行时</strong>：</div>
+<div className="diagram">
+<div className="dtitle">Baichuan-M4 系统架构</div>
+<div className="stack">
+<div className="layer l1">
+<div className="lname">Harness 运行时</div>
+<div className="ldesc">异步 SubAgent 调度 · 动态角色切换 · 多维患者记忆 · 动作空间约束与安全护栏 —— 训练与部署<strong>共用同一套代码逻辑</strong></div>
+</div>
+<div className="layer l2">
+<div className="lname">核心推理模型</div>
+<div className="ldesc">SPAR++ 跨度级奖励 · 推理链压缩（1/6）· 课程式 RL · SAPO + R3 稳定优化</div>
+</div>
+<div className="layer l3">
+<div className="lname">临床工具层</div>
+<div className="ldesc">六层证据金字塔（EBM）· PICO 检索 · 多模态感知（OCR / X 光 / 皮肤科）· 患者记忆管理</div>
+</div>
+</div>
+<div className="dcap">三者并非松散叠加，而是深度耦合：没有 Harness，SPAR++ 的奖励信号无法准确锚定、外循环的 bad case 无法回流训练、SubAgent 的并行调度就只是普通的 API 调用链。<strong>Harness 是整个系统的底层操作系统。</strong><span className="ep inf">inferred</span></div>
+</div>
+<h3 id="52-baichuan-harness作为统一运行时的四大机制">5.2 Baichuan-Harness：作为统一运行时的四大机制</h3>
+<div className="hpara">
+        Harness 的核心使命是消除 <strong>Sim-to-Real Gap</strong>——让 RL 训练时的环境（工具接口、行为约束、记忆存取方式）与真实部署时<strong>完全一致</strong>。它通过四个机制实现：<span className="ep paper">paper</span>
+</div>
+<div className="grid2">
+<div className="mini">
+<h4>① 异步 SubAgent 调度</h4>
+<div className="hpara">主 Agent 把高上下文负荷任务（文献检索、长病历整理）分解给专用 SubAgent 并行处理，释放主 Agent 的推理资源，避免被上下文淹没。</div>
+</div>
+<div className="mini">
+<h4>② 动态角色切换</h4>
+<div className="hpara">多轮问诊中，专用「信息采集 SubAgent」完成病史收集后触发结束信号，系统切回主 Agent 做综合分析。这种「人格隔离」增强了系统稳定性。</div>
+</div>
+<div className="mini">
+<h4>③ 多维患者记忆 + 合规写入链</h4>
+<div className="hpara">短期记忆（Session Context）存瞬态信息；长期记忆（Long-term Profile）只有经过「提取 → 置信度评估 → 必要时用户确认」三步合规链后才写入，<strong>从源头过滤未核实的自述</strong>，防止长期幻觉积累。</div>
+</div>
+<div className="mini">
+<h4>④ 渐进式隐私披露</h4>
+<div className="hpara">默认只给模型看 Profile 摘要；仅当 Agent 明确发出深度回溯指令时，才按需加载底层原始电子病历。在「最小隐私暴露」与「最大计算效率」之间取得平衡。</div>
+</div>
+</div>
+<h3 id="53-核心模型的四大算法创新">5.3 核心模型的四大算法创新</h3>
+<div className="hpara">Harness 提供了运行环境，模型层则有四项针对医疗场景的算法设计：</div>
+<div className="table-wrap">
+<table>
+<thead><tr><th>创新</th><th>解决的问题</th><th>关键设计</th></tr></thead>
+<tbody>
+<tr>
+<td><strong>SPAR++</strong><br />跨度级奖励</td>
+<td>粗粒度奖励对整轨迹打分，无法定位具体临床行为对错（信用分配问题）</td>
+<td>把奖励锚定到<strong>关键临床跨度（span）</strong>：充分病史采集 / 及时识别红旗症状给正奖励；并设<strong>质量门控</strong>——效率奖励（减少问诊轮次）只在医疗质量达标时才生效</td>
+</tr>
+<tr>
+<td><strong>推理链压缩</strong></td>
+<td>内部 CoT 过长，挤占上下文、增加首 token 延迟</td>
+<td>对内部 <code>reasoning_content</code> 的冗余施加精细惩罚，把每次内部推理 token 压到原来的 <strong>1/6</strong>，而不压缩用户可见输出</td>
+</tr>
+<tr>
+<td><strong>课程式 RL</strong></td>
+<td>从初诊到长期随访的能力需要循序渐进</td>
+<td>两阶段：先以初诊数据夯实病史采集；再混入多源异构记忆，强化不完整信息下的病情演化推理</td>
+</tr>
+<tr>
+<td><strong>SAPO + R3</strong></td>
+<td>多轮高并发交互下 RL 训练易振荡 / 熵崩溃</td>
+<td>SAPO 用平滑策略梯度替代 PPO/GRPO 的硬截断；R3 路由回放抑制 Loss Peak，配合 KL 约束稳定训练</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div className="note green">
+<div className="tag">设计精髓 · SPAR++ 质量门控</div>
+<div className="hpara">这是把「医疗场景特殊性」写进算法的典范：它<strong>防止模型为了「快速结束对话」的效率奖励而省略关键问诊</strong>——在医疗里，「快但不安全」是极危险的行为。质量门控让效率与安全解耦，安全优先。<span className="ep paper">paper</span></div>
+</div>
+<h3 id="54-三层闭环自进化架构横跨训练与推理">5.4 三层闭环自进化架构（横跨训练与推理）</h3>
+<div className="hpara">
+        M4 围绕真实临床路径构建了三层闭环。一个常见误解是把它们都当作训练机制；实际上<strong>每一层的运行阶段不同</strong>：
+      </div>
+<div className="diagram">
+<div className="dtitle">三层闭环：各自的运行阶段与作用</div>
+<div className="stack">
+<div className="layer l1">
+<div className="lname">内循环 · 患者级</div>
+<div className="ldesc"><b>推理时实时运行。</b>在每次对话中动态把当前输入与患者历史病程拼接，识别「这是同一疾病事件的延续」。<strong>不更新参数</strong>，是纯运行时状态管理。</div>
+</div>
+<div className="layer l2">
+<div className="lname">中循环 · 临床级</div>
+<div className="ldesc"><b>训练时的奖励来源。</b>对一段连续照护对话从医疗准确性、安全护栏、主动追问等维度打分（自动评估 + 专家审核），转化为 SPAR++ 的跨度级奖励，驱动 RL。</div>
+</div>
+<div className="layer l3">
+<div className="lname">外循环 · 在线进化</div>
+<div className="ldesc"><b>推理时采集 → 训练时消化。</b>持续捕获线上 bad case、用户追问、医生纠正，脱敏 → 聚类 → 根因分析 → 专家验证后注入下一轮训练。这是<strong>最接近 Auto-Harness 精神</strong>的半自动自进化闭环。</div>
+</div>
+</div>
+<div className="dcap">一个直观比喻：内循环像医生在诊室翻病历（推理时记忆调取），中循环像科室每周病例讨论会（训练期质量评估），外循环像医院级质控体系（长期收集失误、定期改进）。<span className="ep paper">paper</span></div>
+</div>
+<h3 id="55-临床工具层让证据可溯源">5.5 临床工具层：让证据可溯源</h3>
+<div className="hpara">
+        工具层是 M4 抑制幻觉的关键。它构建了<strong>六层证据金字塔</strong>，并用 PICO 框架（Population / Intervention / Comparison / Outcome）分解查询，通过 RL 对检索策略注入相关性、时效性、权威性等多维奖励。<span className="ep paper">paper</span>
+</div>
+<div className="diagram">
+<div className="dtitle">六层证据金字塔（EBM）</div>
+<div className="stack">
+<div className="layer l1"><div className="lname">顶 · 监管 / RWE</div><div className="ldesc">监管与真实世界证据层</div></div>
+<div className="layer l2"><div className="lname">公共健康</div><div className="ldesc">公共健康教育层</div></div>
+<div className="layer l3"><div className="lname">实践知识</div><div className="ldesc">实践知识层</div></div>
+<div className="layer l1"><div className="lname">指南标准</div><div className="ldesc">指南与标准层</div></div>
+<div className="layer l2"><div className="lname">证据综述</div><div className="ldesc">系统综述 / Meta 分析层</div></div>
+<div className="layer l3"><div className="lname">底 · 原始研究</div><div className="ldesc">4000 万+ 生物医学记录的原始研究层</div></div>
+</div>
+<div className="dcap">多模态感知方面，皮肤科诊断智能体构建了「候选生成 / 假设验证 / 视觉类比 / 形态学概念 / 鉴别诊断」<strong>五维证据空间</strong>，并设「工具调用必要性约束」：没有完整证据链的诊断不获任何奖励。<span className="ep paper">paper</span></div>
+</div>
+<h3 id="56-harness-如何贯穿训练--推理--数据">5.6 Harness 如何贯穿训练 / 推理 / 数据</h3>
+<div className="hpara">这是理解 M4 最关键的一点：Harness 不是某个阶段的工具，而是<strong>横跨全流程的同一套逻辑</strong>。</div>
+<div className="table-wrap">
+<table>
+<thead><tr><th>维度</th><th>传统方式（非 Harness）</th><th>Baichuan-M4（Harness 统一运行时）</th></tr></thead>
+<tbody>
+<tr><td>训练-部署关系</td><td>训练在脚本里，部署在系统里（存在差异）</td><td><strong>Sim-to-Real 一致</strong>：RL 训练完整包裹在 Harness 内，接口 / 约束 / 记忆存取与部署完全相同</td></tr>
+<tr><td>工具调用</td><td>模型直接学习 API 文本</td><td><strong>Action Space 约束</strong>：Harness 验证并限制非法调用</td></tr>
+<tr><td>上下文处理</td><td>全部塞进 context window</td><td><strong>SubAgent 并行 + 渐进披露</strong>：Harness 调度任务、按需加载，减轻负担</td></tr>
+<tr><td>数据更新</td><td>SFT 静态微调</td><td><strong>外循环在线演进</strong>：Harness 捕获线上弱信号驱动持续迭代</td></tr>
+</tbody>
+</table>
+</div>
+<blockquote>
+        "The reinforcement learning training of M4 is completed entirely within Baichuan-Harness in a closed loop. This ensures consistency between training and deployment in interaction interfaces, action space, and execution constraints."
+        <cite>— Baichuan-M4，§ Harness Runtime <span className="ep paper">paper</span></cite>
+</blockquote>
+<h3 id="57-主要结果">5.7 主要结果</h3>
+<div className="hpara">M4 在多个内 / 外部基准上取得领先（对比 GPT-5.5、Opus 4.7、DeepSeek-V4-Pro 等通用模型）：</div>
+<div className="table-wrap">
+<table>
+<thead><tr><th>基准</th><th>指标</th><th>竞品最优</th><th>Baichuan-M4</th><th>提升</th></tr></thead>
+<tbody>
+<tr><td>HealthBench Total</td><td className="num">得分</td><td className="num">58.4</td><td className="num"><strong>68.6</strong></td><td className="num up">+10.2</td></tr>
+<tr><td>HealthBench Hard</td><td className="num">得分</td><td className="num">33.8</td><td className="num"><strong>49.7</strong></td><td className="num up">+15.9</td></tr>
+<tr><td>长上下文临床记忆</td><td className="num">得分</td><td className="num">81.7</td><td className="num"><strong>86.9</strong></td><td className="num up">+5.2（较前代 M3 +21.1）</td></tr>
+<tr><td>EBM Citation Precision</td><td className="num">得分</td><td className="num">55.9</td><td className="num"><strong>90.0</strong></td><td className="num up">+34.1</td></tr>
+<tr><td>幻觉率</td><td className="num">%（↓）</td><td className="num">3.8</td><td className="num"><strong>3.3</strong></td><td className="num up">−0.5pp</td></tr>
+<tr><td>医疗 OCR（非结构化）</td><td className="num">分值</td><td className="num">0.644</td><td className="num"><strong>0.838</strong></td><td className="num up">+0.194</td></tr>
+</tbody>
+</table>
+</div>
+<div className="hpara">所有数字均来自论文。<span className="ep paper">paper</span> 其中「长上下文临床记忆」与「Citation Precision」的领先最为突出，印证了 Harness 记忆管理 + EBM 工具层的价值。</div>
+<h3 id="58-辩证评估标杆还是技术白皮书">5.8 辩证评估：标杆，还是技术白皮书？</h3>
+<div className="grid2">
+<div className="mini">
+<h4>✅ 真正的亮点</h4>
+<ul className="clean">
+<li>把<strong>完整智能体系统</strong>作为研究对象，三层架构逻辑自洽</li>
+<li>SPAR++ 质量门控体现对医疗特殊性的深刻理解</li>
+<li>推理链压缩、渐进披露具有真实部署价值</li>
+</ul>
+</div>
+<div className="mini">
+<h4>⚠️ 关键保留意见</h4>
+<ul className="clean">
+<li><strong>缺乏消融</strong>：四大算法创新各自贡献无从量化 <span className="ep inf">inferred</span></li>
+<li><strong>自建基准主导</strong>：EBM / Scan-Bench 等存在分布泄露风险，Citation 90.0 的异常领先值得警惕</li>
+<li><strong>可复现性极弱</strong>：无代码 / 权重 / 超参 / 算力披露</li>
+</ul>
+</div>
+</div>
+<div className="note blue">
+<div className="tag">最终评价</div>
+<div className="hpara">M4 是当前医疗 Harness「系统完整性」最高的实践之一，其「Harness 即操作系统」的设计哲学代表了医疗 Agentic AI 从「模型中心」向「系统中心」的关键一步；但它在严格学术验证上的不足，使其当前更接近一份<strong>有说服力的产品技术白皮书</strong>，而非可被完全复现的科学论文。距离真正临床部署，仍有监管审批、长期记忆可靠性、外部独立验证等多重关卡。<span className="ep inf">inferred</span></div>
+</div>
+</section>
+
+<section id="s6">
+<span className="sec-num">SECTION 06</span>
+<h2 id="医疗-agent-全景四维架构与代表系统">医疗 Agent 全景：四维架构与代表系统</h2>
+<div className="hpara">
+        把视野从 Baichuan-M4 放大到整个领域：综述《LLM-based Agents in Medicine》把医疗智能体的「Harness」拆解为<strong>四个可工程化维度</strong>。这恰好可作为审视任何医疗 Agent 系统的统一标尺。<span className="ep paper">paper</span>
+</div>
+<div className="cols4">
+<div className="col">
+<div className="ct">① 感知 Perception</div>
+<ul><li>处理多模态输入</li><li>文本 / 影像 / 检验</li><li>EHR 结构化解析</li></ul>
+</div>
+<div className="col">
+<div className="ct">② 记忆 Memory</div>
+<ul><li>短期：对话上下文</li><li>长期：患者档案</li><li>跨会话病程追踪</li></ul>
+</div>
+<div className="col">
+<div className="ct">③ 规划 Planning</div>
+<ul><li>任务分解</li><li>诊疗路径推理</li><li>反思与纠错</li></ul>
+</div>
+<div className="col">
+<div className="ct">④ 行动 Action</div>
+<ul><li>调用外部工具</li><li>检索知识库</li><li>多 Agent 协作</li></ul>
+</div>
+</div>
+<div className="hpara">
+        对照看：Baichuan-Harness 的「多模态感知」对应①、「多维患者记忆」对应②、「SubAgent 调度 + 课程式推理」对应③、「临床工具层」对应④——M4 是这套四维框架最完整的一次落地。<span className="ep inf">inferred</span>
+</div>
+<h3 id="61-代表性医疗-agent-系统横向对比">6.1 代表性医疗 Agent 系统横向对比</h3>
+<div className="hpara">除 Baichuan-M4 外，学术界与工业界还有多个有影响力的医疗 Agent 系统，各有侧重：</div>
+<div className="table-wrap">
+<table>
+<thead><tr><th>系统</th><th>机构 / 发表</th><th>核心范式</th><th>Harness 四要素覆盖</th><th>代表结果</th></tr></thead>
+<tbody>
+<tr><td><strong>Baichuan-M4</strong><a className="cit" href="#ref-7">7</a></td><td>百川 × 清华, 2026</td><td>连续照护 + 闭环 RL</td><td>T1 SubAgent 循环 · T2 临床工具层 · T3 多维记忆 · T4 SPAR++ 质量门控</td><td>MedQA 90.0, 多轮连续照护 SOTA</td></tr>
+<tr><td><strong>AMIE</strong><a className="cit" href="#ref-9">9</a></td><td>Google DeepMind, Nature Medicine 2024</td><td>诊断对话 + 自我博弈</td><td>T1 多轮问诊循环 · T4 链式推理护栏</td><td>盲评超越初级护理医生（≥28/32 指标）<span className="ep ext">external</span></td></tr>
+<tr><td><strong>TxAgent</strong><a className="cit" href="#ref-10">10</a></td><td>Harvard, 2025</td><td>治疗推理 + 工具宇宙</td><td>T2 ToolUniverse（211 工具）· T3 证据链上下文 · T4 证据金字塔控制</td><td>用药推荐准确率显著优于 GPT-4<span className="ep ext">external</span></td></tr>
+<tr><td><strong>Agent Hospital</strong><a className="cit" href="#ref-11">11</a></td><td>清华, 2024</td><td>虚拟医院 + 自进化</td><td>T1 医患 / 护士 / 管理员多 Agent 循环 · T3 患者历史 · T4 临床协议</td><td>MedQA +10+ pp（仅靠模拟经验，无额外标注）<span className="ep ext">external</span></td></tr>
+<tr><td><strong>MDAgents</strong><a className="cit" href="#ref-12">12</a></td><td>MIT / Google, NeurIPS 2024</td><td>多 Agent 协作</td><td>T1 主席制多轮审议（复杂案例）· T4 难度分类器决定团队结构</td><td>复杂病例超越单 Agent 基线；NeurIPS 2024<span className="ep ext">external</span></td></tr>
+<tr><td><strong>AgentClinic</strong><a className="cit" href="#ref-13">13</a></td><td>Stanford, 2024</td><td>多模态交互评测基准</td><td>覆盖 T1–T4 全部要素的端到端测评框架</td><td>发现现有 Agent 存在种族 / 性别偏倚；交互式得分显著低于静态 QA<span className="ep ext">external</span></td></tr>
+</tbody>
+</table>
+</div>
+<div className="grid2">
+<div className="mini">
+<h4>AMIE<a className="cit" href="#ref-9">9</a>（Google DeepMind）</h4>
+<div className="hpara"><strong>核心问题</strong>：高质量的诊断对话数据稀缺，且医生标注成本极高。如何在无需大量人工标注的前提下训练出擅长问诊的临床 Agent？<span className="ep ext">external</span></div>
+<div className="hpara"><strong>方法</strong>：Self-play——让两个 LLM 分别扮演医生与患者进行模拟问诊，自动生成多轮训练对话。Agent 运行链式推理（Chain-of-Reasoning）循环：提问 → 形成鉴别诊断假设 → 评估当前信息缺口 → 再提问，循环至达到诊断置信度。对话结束时生成结构化诊断报告，并通过 Critic 模块对推理链进行一致性核查。</div>
+<div className="hpara"><strong>结果</strong>：在专科医生盲评中，AMIE 在 28/32 项临床指标上表现不逊于甚至超越初级护理医生，包括病史采集质量、鉴别诊断合理性与共情沟通。</div>
+</div>
+<div className="mini">
+<h4>TxAgent<a className="cit" href="#ref-10">10</a>（Harvard）</h4>
+<div className="hpara"><strong>核心问题</strong>：治疗推理（用药方案、药物组合、剂量选择）需要整合来自多个领域的实时证据，而 LLM 参数化知识存在截断日期和幻觉风险。<span className="ep ext">external</span></div>
+<div className="hpara"><strong>方法</strong>：构建 ToolUniverse，收录 211 个经专业人员审核的生物医学工具（药物相互作用数据库、PubMed 检索、临床试验查询、分子通路分析等）。推理时采用逐步工具调用策略：每一步推理都必须锚定到工具返回的具体证据，证据按「RCT > 系统综述 > 专家共识 > 案例报告」的证据金字塔分级加权。</div>
+<div className="hpara"><strong>结果</strong>：在多药物治疗推荐任务上准确率显著高于 GPT-4 基线；所有推荐均附带可追溯的证据链，满足临床可解释性要求。</div>
+</div>
+<div className="mini">
+<h4>Agent Hospital<a className="cit" href="#ref-11">11</a>（清华）</h4>
+<div className="hpara"><strong>核心问题</strong>：真实临床数据因隐私限制极难获取；医生的临床技能提升需要大量病例经验，但模型无法在真实医院中「实习」。<span className="ep ext">external</span></div>
+<div className="hpara"><strong>方法</strong>：构建包含医生、护士、患者、管理员四类角色的完整虚拟医院。引入 MedAgent-Zero：医生 Agent 在虚拟问诊中积累经验，无需人工标注——错误诊断由模拟结果反馈纠正，正确决策被归纳入经验记忆。虚拟医院可在数小时内模拟数年的临床接诊量，实现超高速「实习」。</div>
+<div className="hpara"><strong>结果</strong>：仅靠模拟经验，不引入额外标注数据，MedQA 提升超 10 个百分点；证明高质量的模拟环境可以替代部分真实数据来训练临床 Agent。</div>
+</div>
+<div className="mini">
+<h4>MDAgents<a className="cit" href="#ref-12">12</a>（MIT / Google）</h4>
+<div className="hpara"><strong>核心问题</strong>：不同病例的诊断难度相差极大——让所有病例都走多学科会诊流程既低效又昂贵；但只靠单 Agent 处理复杂病例又容易漏诊。<span className="ep ext">external</span></div>
+<div className="hpara"><strong>方法</strong>：引入难度感知路由：首先对病例描述进行复杂度分级（简单 / 中等 / 复杂），再按难度动态组织团队——简单病例由单 Agent 独立判断；中等病例由 2–3 个专科角色协作讨论；复杂病例触发主席制多学科团队（MDT），主席汇总各专科意见并主持多轮审议后输出最终诊断。</div>
+<div className="hpara"><strong>结果</strong>：NeurIPS 2024；在复杂病例上准确率显著高于单 Agent 基线；自适应路由在保持性能的同时减少了不必要的计算开销。</div>
+</div>
+<div className="mini wide">
+<h4>AgentClinic<a className="cit" href="#ref-13">13</a>（Stanford）—— 测评视角</h4>
+<div className="hpara"><strong>核心问题</strong>：现有医疗 LLM 评测以静态多选题为主（如 USMLE），无法反映真实临床中的动态交互能力——医生需要主动追问、根据患者反应调整策略，而不是单次选项匹配。<span className="ep ext">external</span></div>
+<div className="hpara"><strong>方法</strong>：构建多模态模拟诊室环境，包含「患者 Agent」（由 LLM 扮演，保有完整病史但只按真实患者模式透露信息）和「医生 Agent」（被评测方）。评测覆盖完整就诊流程：主诉询问 → 体格检查指令 → 辅助检查申请 → 鉴别诊断 → 治疗方案。测试还系统性地测量<strong>偏倚效应</strong>：同一临床场景配以不同种族 / 性别 / 社会经济背景的患者 Profile，观察诊断建议的变化。</div>
+<div className="hpara"><strong>关键发现</strong>：当前主流 LLM 在交互式临床评测中的得分显著低于静态 QA 测试，两者差距揭示了当前 Harness 的不足；Agent 普遍存在人口统计学偏倚，对不同背景患者给出不等质量的诊断建议——这是 Harness 的控制层（T4）必须显式处理的安全问题。</div>
+</div>
+</div>
+<h3 id="62-医疗-harness-的三种典型形态">6.2 医疗 Harness 的三种典型形态</h3>
+<div className="diagram">
+<div className="dtitle">从「单体护栏」到「自进化系统」</div>
+<div className="flow">
+<div className="fc-node"><b>形态 A · 安全护栏型</b><span>以 T4 控制为核心：药物相互作用检查、剂量校验、红旗症状强制转诊</span></div>
+<div className="fc-arrow">→</div>
+<div className="fc-node b"><b>形态 B · 工具编排型</b><span>以 T2 工具为核心：TxAgent / 证据金字塔，把诊疗锚定到可信外部知识</span></div>
+<div className="fc-arrow">→</div>
+<div className="fc-node g"><b>形态 C · 自进化型</b><span>四条件齐备 + 外循环：Baichuan-M4 / Agent Hospital，从真实反馈持续改进</span></div>
+</div>
+<div className="dcap">越往右，自动化与自进化程度越高，但对工程复杂度、数据治理与监管的要求也越高。当前真正落地的多是 A、B 形态，C 形态尚处早期。<span className="ep inf">inferred</span></div>
+</div>
+</section>
+
+<section id="s7">
+<span className="sec-num">SECTION 07 · 落地</span>
+<h2 id="如何对医疗大模型应用-auto-harness--agentic">如何对医疗大模型应用 Auto-Harness / Agentic</h2>
+<div className="hpara">
+        前面的概念与系统，最终要回答一个工程问题：<strong>给定一个医疗大模型，怎样一步步为它套上、并自动优化一套合格的 Harness？</strong> 综合 Baichuan-M4 的实践与通用 Auto-Harness 方法，可以提炼出一条由浅入深、分阶递进的落地路径——从最基础的确定性安全护栏，逐步走向工具接入、训练部署统一、持续闭环，直至具备自动搜索和自我演进能力。<span className="ep inf">inferred</span>
+</div>
+<div className="diagram">
+<div className="dtitle">医疗 Auto-Harness 落地路径：从安全护栏到自我演进</div>
+<div className="stack">
+<div className="layer l1"><div className="lname">阶段 1 · 立护栏</div><div className="ldesc">先满足 T4：把<strong>安全规则写成确定性代码</strong>（剂量上限、药物相互作用、红旗症状强制转诊、免责声明）。这些必须是「硬逻辑」，不能交给概率。</div></div>
+<div className="layer l2"><div className="lname">阶段 2 · 接工具与记忆</div><div className="ldesc">补齐 T2/T3：接入证据金字塔 + PICO 检索（抑制幻觉），建立短期/长期患者记忆与<strong>合规写入链</strong>（提取→置信度→确认）。</div></div>
+<div className="layer l3"><div className="lname">阶段 3 · 统一运行时</div><div className="ldesc">把训练与部署收进<strong>同一套 Harness</strong>（Sim-to-Real 一致），用课程式 RL + SPAR++ 质量门控奖励训练，确保「安全优先于效率」。</div></div>
+<div className="layer l1"><div className="lname">阶段 4 · 闭环回流</div><div className="ldesc">建立外循环：线上 bad case / 医生纠正 → 脱敏 → 聚类 → 根因 → <strong>专家验证后注入下一轮训练</strong>。这是医疗版的「人在环」Auto-Harness。</div></div>
+<div className="layer l3"><div className="lname">阶段 5 · 自动搜索 Harness</div><div className="ldesc">引入 AHE / Self-Harness 式自动演进：组件解耦 + Change Manifest + Git 回滚 + held-in/out 双重回归门槛，让系统<strong>在受控、可审计、可回滚</strong>的前提下自我改进。</div></div>
+</div>
+<div className="dcap">现实中绝大多数医疗系统停留在阶段 1–2；Baichuan-M4 推进到了阶段 3–4；阶段 5 的「全自动 harness 搜索」在医疗里必须保留强人审与回滚，短期内不会去掉「人在环」。<span className="ep inf">inferred</span></div>
+</div>
+<h3 id="71-通用-auto-harness-技术--医疗适配映射">7.1 通用 Auto-Harness 技术 → 医疗适配映射</h3>
+<div className="hpara">把第 3 节的通用方法逐条「翻译」到医疗约束下，可得到一份直接可用的对照表：</div>
+<div className="table-wrap">
+<table>
+<thead><tr><th>通用技术</th><th>原始动机</th><th>医疗场景的适配与约束</th></tr></thead>
+<tbody>
+<tr><td>代码外化对错判断<br />（AutoHarness）</td><td>消除非法动作</td><td>把临床安全规则（剂量 / 禁忌 / 转诊）写成可执行校验，<strong>诊断必须附完整证据链才被接受</strong></td></tr>
+<tr><td>原始轨迹诊断<br />（Meta-Harness）</td><td>trace 比摘要更有信息</td><td>保留完整问诊轨迹做根因分析，但须<strong>脱敏后</strong>存取，满足 HIPAA / GDPR</td></tr>
+<tr><td>三层可观测 + 回滚<br />（AHE）</td><td>编辑可归因、能回滚</td><td>每次 harness 变更声明「修复谁 / 可能危害谁」，<strong>触碰安全组件须强制专家复核</strong>后才合并</td></tr>
+<tr><td>回归门槛<br />（Self-Harness）</td><td>改进不退步</td><td>新版本须在 held-out 临床集上<strong>安全指标与幻觉率不退步</strong>，方可上线</td></tr>
+<tr><td>span-level 奖励<br />（SPAR++）</td><td>精准信用分配</td><td>奖励锚定关键临床行为（充分问诊 / 识别红旗），<strong>效率奖励经质量门控</strong></td></tr>
+</tbody>
+</table>
+</div>
+<div className="note green">
+<div className="tag">一句话方法论</div>
+<div className="hpara">医疗版 Auto-Harness 的精髓 ≠ 「让系统自由进化」，而是 <strong>「让系统在确定性安全护栏 + 强人审 + 可回滚」的三重保险下，把可自动化的工程优化交给闭环」</strong>。安全是地板，自动化是天花板，二者不可倒置。<span className="ep inf">inferred</span></div>
+</div>
+<h3 id="72-前沿挑战与开放问题">7.2 前沿挑战与开放问题</h3>
+<div className="grid2">
+<div className="mini">
+<h4>评估的「测不准」</h4>
+<div className="hpara">自建基准存在分布泄露风险（M4 的 Citation 90.0 即为警示）。医疗 Agent 亟需<strong>独立、动态、防泄露</strong>的交互式基准（如 AgentClinic 方向）。<span className="ep inf">inferred</span></div>
+</div>
+<div className="mini">
+<h4>自进化的安全边界</h4>
+<div className="hpara">外循环 / 自动搜索一旦放开，可能引入未预见的失败模式。如何形式化「演进后系统不违反安全不变量」仍是开放问题。<span className="ep inf">inferred</span></div>
+</div>
+<div className="mini">
+<h4>长期记忆的可靠性</h4>
+<div className="hpara">合规写入链能过滤一部分，但长期患者画像中的错误如何检测、纠正、归因，尚无成熟方案。错误记忆会跨会话级联放大。<span className="ep inf">inferred</span></div>
+</div>
+<div className="mini">
+<h4>监管与责任归属</h4>
+<div className="hpara">当 Harness 可自动改写时，「谁为某次诊断建议负责」变得模糊。可审计性（每步可追溯到代码版本 + 证据）是落地前提。<span className="ep ext">external</span></div>
+</div>
+</div>
+</section>
+
+<section id="s8">
+<span className="sec-num">SECTION 08</span>
+<h2 id="结语从更强的模型到更好的系统">结语：从「更强的模型」到「更好的系统」</h2>
+<div className="hpara">
+        这篇研读的主线，是一次研究视角的位移：<strong>从「如何让模型更聪明」转向「如何为模型设计更好的运行环境」</strong>。Harness 把这层环境定义清楚（四条件），Auto-Harness 把「设计环境」本身变成可搜索、可演化的工程问题，而医疗领域则因为它极致的安全约束，把 Harness 从「外壳」逼成了「底座」。
+      </div>
+<div className="hpara">
+        Baichuan-M4 给出了目前最完整的答案样本：用统一运行时弥合训练-部署鸿沟、用 SPAR++ 把医疗安全写进奖励、用三层闭环让系统从真实反馈中自进化。它的不足（缺消融、自建基准、难复现）同样诚实地提醒我们——<strong>医疗 Agentic AI 的工程完整性已经领先于它的科学验证</strong>。
+      </div>
+<div className="note">
+<div className="tag">最后一句</div>
+<div className="hpara">在通用领域，Auto-Harness 是效率的杠杆；在医疗领域，它更是<strong>安全与信任的基础设施</strong>。可自动化的部分尽管自动化，但「确定性安全护栏 + 强人审 + 可回滚」这三道闸门，短期内不会、也不应该交给概率。<span className="ep inf">inferred</span></div>
+</div>
+</section>
+
+<section id="refs">
+<span className="sec-num">参考</span>
+<h2 id="参考文献">参考文献</h2>
+<ol className="refs">
+<li id="ref-1">Sanderson Oliveira de Macedo. <a className="ref-title" href="https://arxiv.org/search/?searchtype=all&amp;query=harness+necessary+sufficient+conditions+agent" rel="noopener" target="_blank">What makes a harness a harness: necessary and sufficient conditions for an agent harness.</a> arXiv preprint, 2026.</li>
+<li id="ref-2">Xinghua Lou, Miguel Lázaro-Gredilla, Antoine Dedieu et al. (Google DeepMind). <a className="ref-title" href="https://arxiv.org/abs/2603.03329" rel="noopener" target="_blank">AutoHarness: Improving LLM Agents by Automatically Synthesizing a Code Harness.</a> arXiv:2603.03329, 2026.</li>
+<li id="ref-3">Authors (Stanford / MIT). <a className="ref-title" href="https://arxiv.org/abs/2603.28052" rel="noopener" target="_blank">Meta-Harness: End-to-End Optimization of Model Harnesses.</a> arXiv:2603.28052, 2026.</li>
+<li id="ref-4">Authors (Fudan / Peking Univ.). <a className="ref-title" href="https://arxiv.org/abs/2604.25850" rel="noopener" target="_blank">AHE: Agentic Harness Engineering.</a> arXiv:2604.25850, 2026.</li>
+<li id="ref-5">Authors (Shanghai AI Lab). <a className="ref-title" href="https://arxiv.org/abs/2606.09498" rel="noopener" target="_blank">Self-Harness: Agents Improve Their Own Harnesses.</a> arXiv:2606.09498, 2026.</li>
+<li id="ref-6">Shengran Hu, Cong Lu, Jeff Clune (UBC / Vector Institute). <a className="ref-title" href="https://arxiv.org/abs/2408.08435" rel="noopener" target="_blank">Automated Design of Agentic Systems.</a> <span className="ref-venue">ICLR 2025.</span> <span className="ref-extra">Also on <a href="https://alphaxiv.org/abs/2408.08435" rel="noopener" target="_blank">alphaXiv</a>; code: <a href="https://github.com/ShengranHu/ADAS" rel="noopener" target="_blank">ShengranHu/ADAS</a>.</span></li>
+<li id="ref-7">Baichuan Inc. &amp; Tsinghua Univ. <a className="ref-title" href="https://arxiv.org/abs/2606.08982" rel="noopener" target="_blank">Baichuan-M4: A Clinical-Grade Medical Agent System for Continuous Care.</a> arXiv:2606.08982, 2026.</li>
+<li id="ref-8">Authors. <a className="ref-title" href="https://arxiv.org/abs/2502.11211" rel="noopener" target="_blank">LLM-based Agents in Medicine: A Survey.</a> arXiv:2502.11211, 2025.</li>
+<li id="ref-9">Tao Tu, Anil Palepu et al. (Google DeepMind). <a className="ref-title" href="https://arxiv.org/abs/2401.05654" rel="noopener" target="_blank">Towards Conversational Diagnostic AI.</a> <span className="ref-venue">Nature Medicine, 2024.</span></li>
+<li id="ref-10">Shangbin Feng et al. (Harvard). <a className="ref-title" href="https://arxiv.org/abs/2503.10750" rel="noopener" target="_blank">TxAgent: An AI Agent for Therapeutic Reasoning Across a Universe of Tools.</a> 2025.</li>
+<li id="ref-11">Minghao Chen et al. (Tsinghua). <a className="ref-title" href="https://arxiv.org/abs/2405.02957" rel="noopener" target="_blank">Agent Hospital: A Simulacrum of Hospital with Evolvable Medical Agents.</a> 2024.</li>
+<li id="ref-12">Yubin Kim et al. (MIT / Google). <a className="ref-title" href="https://arxiv.org/abs/2404.15155" rel="noopener" target="_blank">MDAgents: An Adaptive Collaboration of LLMs for Medical Decision-Making.</a> <span className="ref-venue">NeurIPS 2024.</span></li>
+<li id="ref-13">Samuel Schmidgall et al. (Stanford). <a className="ref-title" href="https://arxiv.org/abs/2405.07960" rel="noopener" target="_blank">AgentClinic: A Multimodal Agent Benchmark to Evaluate AI in Simulated Clinical Environments.</a> 2024.</li>
+<li id="ref-14">Authors. <a className="ref-title" href="https://arxiv.org/abs/2605.23950" rel="noopener" target="_blank">Stop Comparing LLM Agents Without Disclosing the Harness.</a> arXiv:2605.23950, 2026.</li>
+</ol>
+</section>

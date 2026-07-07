@@ -42,7 +42,7 @@ export default async function PostPage({ params }: PageProps) {
   const content = await renderPost(post);
 
   return (
-    <main className="stacked article-page">
+    <main className={`stacked article-page article-slug-${post.slug}`}>
       <div className="article-topline enter-rise">
         <Link className="article-back-link" href="/">
           <span aria-hidden="true">←</span>

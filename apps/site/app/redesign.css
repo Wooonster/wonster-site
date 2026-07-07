@@ -1620,3 +1620,74 @@ html[data-locale="zh"] .everyday-paper-prose {
     max-width: 920px;
   }
 }
+
+/* Final typography pass: keep all site and Everyday Paper headings restrained. */
+:root {
+  --font-display: var(--font-site-ui), "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+}
+
+.wordmark,
+.home-section .section-title,
+.page-intro .display-title,
+.everyday-paper-display,
+.everyday-paper-detail-title,
+.index-entry-copy h3,
+.project-row-copy h3,
+.daily-paper-row-copy h3,
+.everyday-paper-archive-card h2,
+.everyday-paper-prose h1,
+.everyday-paper-prose h2,
+.everyday-paper-prose h3,
+.everyday-paper-prose h4,
+.wiki-index-title,
+.wiki-hero-title,
+.wiki-entry-title,
+.wiki-prose h2,
+.wiki-prose h3 {
+  font-family: var(--font-site-ui), "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  letter-spacing: 0;
+}
+
+.wordmark {
+  font-weight: 760;
+}
+
+.home-section .section-title,
+.page-intro .display-title,
+.everyday-paper-display,
+.everyday-paper-detail-title,
+.wiki-index-title,
+.wiki-hero-title {
+  font-weight: 760;
+  line-height: 1.12;
+}
+
+.home-section .section-title {
+  font-size: clamp(1.48rem, 2.6vw, 2.15rem);
+}
+
+.everyday-paper-display,
+.everyday-paper-detail-title {
+  font-size: clamp(2rem, 5.2vw, 3.9rem);
+}
+
+.index-entry-copy h3,
+.project-row-copy h3,
+.daily-paper-row-copy h3,
+.everyday-paper-archive-card h2 {
+  font-weight: 720;
+  line-height: 1.26;
+}
+
+.everyday-paper-prose h1,
+.everyday-paper-prose h2 {
+  font-weight: 760;
+  line-height: 1.25;
+}
+
+.everyday-paper-prose h3,
+.everyday-paper-prose h4,
+.wiki-prose h2,
+.wiki-prose h3 {
+  font-weight: 720;
+}

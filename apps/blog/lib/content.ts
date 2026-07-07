@@ -21,6 +21,7 @@ type Frontmatter = {
   featured?: boolean;
   cover?: string;
   language: PostLanguage;
+  readingMinutes?: string;
 };
 
 export type Heading = {
@@ -66,12 +67,31 @@ function extractHeadings(markdown: string) {
 
   return markdown
     .split("\n")
-    .map((line) => line.match(/^(##|###)\s+(.*)$/))
-    .filter((match): match is RegExpMatchArray => Boolean(match))
-    .map((match) => ({
-      level: match[1].length,
-      text: match[2].trim(),
-      id: slugger.slug(match[2].trim())
+    .map((line) => {
+      const markdownHeading = line.match(/^(##|###)\s+(.*)$/);
+
+      if (markdownHeading) {
+        return {
+          level: markdownHeading[1].length,
+          text: markdownHeading[2].trim()
+        };
+      }
+
+      const htmlHeading = line.match(/^<h([23])(?:\s[^>]*)?>(.*?)<\/h\1>$/);
+
+      if (!htmlHeading) {
+        return null;
+      }
+
+      return {
+        level: Number(htmlHeading[1]),
+        text: htmlHeading[2].replace(/<[^>]+>/g, "").trim()
+      };
+    })
+    .filter((heading): heading is { level: number; text: string } => Boolean(heading))
+    .map((heading) => ({
+      ...heading,
+      id: slugger.slug(heading.text)
     }));
 }
 
@@ -103,7 +123,7 @@ function readPostFile(filePath: string): Post {
     slug,
     source: normalizedContent,
     headings: extractHeadings(normalizedContent),
-    readingMinutes: Math.max(1, Math.round(stats.minutes)).toString()
+    readingMinutes: frontmatter.readingMinutes ?? Math.max(1, Math.round(stats.minutes)).toString()
   };
 }
 
